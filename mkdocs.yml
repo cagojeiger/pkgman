@@ -39,3 +39,4 @@ nav:
   - Home: index.md
   - bintools: bintools.md
   - rpmtools: rpmtools.md
+  - snaptools: snaptools.md

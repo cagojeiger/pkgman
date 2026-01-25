@@ -9,14 +9,14 @@ RPM 패키지 번들러 - Rocky Linux용 시스템 패키지 번들
 === "Rocky 9 (Latest)"
 
     ```bash
-    curl -LO https://files.project-jelly.io/packages/rpmtools/rocky9/latest/rpmtools-bundle
+    curl -LO https://files.project-jelly.io/packages/rpmtools/9.5/latest/rpmtools-bundle
     chmod +x rpmtools-bundle
     ```
 
 === "Rocky 8 (Latest)"
 
     ```bash
-    curl -LO https://files.project-jelly.io/packages/rpmtools/rocky8/latest/rpmtools-bundle
+    curl -LO https://files.project-jelly.io/packages/rpmtools/8.10/latest/rpmtools-bundle
     chmod +x rpmtools-bundle
     ```
 
@@ -24,8 +24,8 @@ RPM 패키지 번들러 - Rocky Linux용 시스템 패키지 번들
 
     ```bash
     VERSION="20250125-2110"
-    OS="rocky9"
-    curl -LO "https://files.project-jelly.io/packages/rpmtools/${OS}/${VERSION}/rpmtools-bundle"
+    OS_VER="9.5"  # 또는 8.10
+    curl -LO "https://files.project-jelly.io/packages/rpmtools/${OS_VER}/${VERSION}/rpmtools-bundle"
     chmod +x rpmtools-bundle
     ```
 

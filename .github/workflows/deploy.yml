@@ -29,25 +29,34 @@ jobs:
 
       - name: Find latest versions from S3
         run: |
+          S3_BASE="s3://jelly-prd-cdn-static/packages"
+
           # bintools 최신 버전
-          BINTOOLS_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/bintools/ \
+          BINTOOLS_VERSION=$(aws s3 ls $S3_BASE/bintools/ \
             | awk '{print $2}' | tr -d '/' | sort -r | head -1)
           echo "BINTOOLS_VERSION=$BINTOOLS_VERSION" >> $GITHUB_ENV
 
-          # rpmtools rocky9 최신 버전
-          ROCKY9_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/rpmtools/rocky9/ \
+          # snaptools 최신 버전
+          SNAPTOOLS_VERSION=$(aws s3 ls $S3_BASE/snaptools/ \
             | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-          echo "ROCKY9_VERSION=$ROCKY9_VERSION" >> $GITHUB_ENV
+          echo "SNAPTOOLS_VERSION=$SNAPTOOLS_VERSION" >> $GITHUB_ENV
 
-          # rpmtools rocky8 최신 버전
-          ROCKY8_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/rpmtools/rocky8/ \
-            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-          echo "ROCKY8_VERSION=$ROCKY8_VERSION" >> $GITHUB_ENV
+          # rpmtools - 동적으로 OS 버전 탐지 (9.5, 8.10 등)
+          RPMTOOLS_OS_VERSIONS=""
+          for OS_VER in $(aws s3 ls $S3_BASE/rpmtools/ | awk '{print $2}' | tr -d '/'); do
+            BUILD_VER=$(aws s3 ls $S3_BASE/rpmtools/$OS_VER/ \
+              | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+            # 9.5 → RPMTOOLS_9_5_VERSION
+            VAR_NAME="RPMTOOLS_${OS_VER//./_}_VERSION"
+            echo "${VAR_NAME}=${BUILD_VER}" >> $GITHUB_ENV
+            RPMTOOLS_OS_VERSIONS="${RPMTOOLS_OS_VERSIONS}${OS_VER},"
+          done
+          echo "RPMTOOLS_OS_VERSIONS=${RPMTOOLS_OS_VERSIONS%,}" >> $GITHUB_ENV
 
           echo "Found versions:"
           echo "  bintools: $BINTOOLS_VERSION"
-          echo "  rocky9: $ROCKY9_VERSION"
-          echo "  rocky8: $ROCKY8_VERSION"
+          echo "  snaptools: $SNAPTOOLS_VERSION"
+          echo "  rpmtools OS versions: ${RPMTOOLS_OS_VERSIONS%,}"
 
       - uses: actions/setup-python@v5
         with:

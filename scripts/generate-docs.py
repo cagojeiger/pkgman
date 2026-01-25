@@ -19,8 +19,8 @@ DOCS_DIR = Path(__file__).parent.parent / "docs"
 
 # 환경변수에서 버전 읽기
 BINTOOLS_VERSION = os.environ.get("BINTOOLS_VERSION", "")
-ROCKY9_VERSION = os.environ.get("ROCKY9_VERSION", "")
-ROCKY8_VERSION = os.environ.get("ROCKY8_VERSION", "")
+SNAPTOOLS_VERSION = os.environ.get("SNAPTOOLS_VERSION", "")
+RPMTOOLS_OS_VERSIONS = os.environ.get("RPMTOOLS_OS_VERSIONS", "")
 
 
 def fetch_json(url):
@@ -65,14 +65,21 @@ def update_section(filepath, start, end, content):
     return True
 
 
+def get_rpmtools_version(os_ver):
+    """Get rpmtools version for a specific OS version from env var."""
+    # 9.5 → RPMTOOLS_9_5_VERSION
+    var_name = f"RPMTOOLS_{os_ver.replace('.', '_')}_VERSION"
+    return os.environ.get(var_name, "")
+
+
 def main():
     """Main entry point."""
     print("=" * 50)
     print("Generating documentation from CDN metadata")
     print("=" * 50)
     print(f"BINTOOLS_VERSION: {BINTOOLS_VERSION or '(not set)'}")
-    print(f"ROCKY9_VERSION: {ROCKY9_VERSION or '(not set)'}")
-    print(f"ROCKY8_VERSION: {ROCKY8_VERSION or '(not set)'}")
+    print(f"SNAPTOOLS_VERSION: {SNAPTOOLS_VERSION or '(not set)'}")
+    print(f"RPMTOOLS_OS_VERSIONS: {RPMTOOLS_OS_VERSIONS or '(not set)'}")
     print("=" * 50)
 
     # bintools
@@ -89,33 +96,49 @@ def main():
     else:
         print("Skipping bintools - BINTOOLS_VERSION not set")
 
-    # rpmtools rocky9
-    if ROCKY9_VERSION:
-        url = f"{CDN_BASE}/rpmtools/rocky9/{ROCKY9_VERSION}/metadata.json"
+    # snaptools
+    if SNAPTOOLS_VERSION:
+        url = f"{CDN_BASE}/snaptools/{SNAPTOOLS_VERSION}/metadata.json"
         metadata = fetch_json(url)
         if metadata:
             update_section(
-                DOCS_DIR / "rpmtools.md",
-                "<!-- ROCKY9_PACKAGES_START -->",
-                "<!-- ROCKY9_PACKAGES_END -->",
+                DOCS_DIR / "snaptools.md",
+                "<!-- PACKAGES_TABLE_START -->",
+                "<!-- PACKAGES_TABLE_END -->",
                 generate_table(metadata)
             )
     else:
-        print("Skipping rocky9 - ROCKY9_VERSION not set")
+        print("Skipping snaptools - SNAPTOOLS_VERSION not set")
 
-    # rpmtools rocky8
-    if ROCKY8_VERSION:
-        url = f"{CDN_BASE}/rpmtools/rocky8/{ROCKY8_VERSION}/metadata.json"
-        metadata = fetch_json(url)
-        if metadata:
-            update_section(
-                DOCS_DIR / "rpmtools.md",
-                "<!-- ROCKY8_PACKAGES_START -->",
-                "<!-- ROCKY8_PACKAGES_END -->",
-                generate_table(metadata)
-            )
+    # rpmtools - 동적 OS 버전 처리
+    if RPMTOOLS_OS_VERSIONS:
+        for os_ver in RPMTOOLS_OS_VERSIONS.split(","):
+            os_ver = os_ver.strip()
+            if not os_ver:
+                continue
+
+            build_ver = get_rpmtools_version(os_ver)
+            if not build_ver:
+                print(f"Skipping rpmtools {os_ver} - version not set")
+                continue
+
+            # 실제 S3 경로: rpmtools/9.5/{BUILD_DATE}/metadata.json
+            url = f"{CDN_BASE}/rpmtools/{os_ver}/{build_ver}/metadata.json"
+            metadata = fetch_json(url)
+            if metadata:
+                # OS 버전에 따른 마커 결정 (9.5 → ROCKY9, 8.10 → ROCKY8)
+                major_ver = os_ver.split(".")[0]
+                start_marker = f"<!-- ROCKY{major_ver}_PACKAGES_START -->"
+                end_marker = f"<!-- ROCKY{major_ver}_PACKAGES_END -->"
+
+                update_section(
+                    DOCS_DIR / "rpmtools.md",
+                    start_marker,
+                    end_marker,
+                    generate_table(metadata)
+                )
     else:
-        print("Skipping rocky8 - ROCKY8_VERSION not set")
+        print("Skipping rpmtools - RPMTOOLS_OS_VERSIONS not set")
 
     print("=" * 50)
     print("Done")
