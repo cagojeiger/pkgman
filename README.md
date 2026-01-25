@@ -5,7 +5,6 @@
 ## 링크
 
 - **문서 사이트**: https://cagojeiger.github.io/pkgman/
-- **CDN**: https://files.project-jelly.io/packages/
 
 ## 로컬 개발
 
