@@ -2,11 +2,9 @@ name: Deploy Docs
 
 on:
   workflow_dispatch:
-  repository_dispatch:
-    types: [update-docs]
   push:
     branches: [main]
-    paths: ['docs/**', 'scripts/**', '.github/workflows/deploy.yml']
+    paths: ['docs/**']
 
 permissions:
   contents: read
@@ -18,63 +16,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-upload
-          aws-region: ap-northeast-2
-
-      - name: Find latest versions from S3
-        run: |
-          S3_BASE="s3://jelly-prd-cdn-static/packages"
-
-          # bintools - 1단계 (BUILD_DATE)
-          BINTOOLS_VERSION=$(aws s3 ls $S3_BASE/bintools/ \
-            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-          echo "BINTOOLS_VERSION=$BINTOOLS_VERSION" >> $GITHUB_ENV
-
-          # snaptools - 1단계 (BUILD_DATE)
-          SNAPTOOLS_VERSION=$(aws s3 ls $S3_BASE/snaptools/ \
-            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-          echo "SNAPTOOLS_VERSION=$SNAPTOOLS_VERSION" >> $GITHUB_ENV
-
-          # rpmtools - 2단계 (OS_VER/BUILD_DATE) → JSON으로 전달
-          RPMTOOLS_DATA="{}"
-          for OS_VER in $(aws s3 ls $S3_BASE/rpmtools/ | awk '{print $2}' | tr -d '/'); do
-            BUILD_VER=$(aws s3 ls $S3_BASE/rpmtools/$OS_VER/ \
-              | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-            RPMTOOLS_DATA=$(echo "$RPMTOOLS_DATA" | jq -c --arg k "$OS_VER" --arg v "$BUILD_VER" '. + {($k): $v}')
-          done
-          echo "RPMTOOLS_DATA=$RPMTOOLS_DATA" >> $GITHUB_ENV
-
-          echo "=== S3 Versions ==="
-          echo "bintools: $BINTOOLS_VERSION"
-          echo "snaptools: $SNAPTOOLS_VERSION"
-          echo "rpmtools: $RPMTOOLS_DATA"
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-
-      - name: Generate packages.json
-        run: python scripts/generate-index.py
-
-      - uses: actions/configure-pages@v4
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/
       - uses: actions/deploy-pages@v4
         id: deployment
