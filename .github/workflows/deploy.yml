@@ -1,20 +1,10 @@
 name: Deploy Docs
 
 on:
-  # 수동 실행
   workflow_dispatch:
-  # pkgman-core에서 트리거 (선택적)
-  repository_dispatch:
-    types: [update-docs]
-  # main 브랜치 푸시 시
   push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'scripts/**'
-      - '.github/workflows/deploy.yml'
+    branches: [main]
+    paths: ['docs/**', 'mkdocs.yml', 'scripts/**']
 
 permissions:
   contents: read
@@ -29,31 +19,49 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-read
+          aws-region: ap-northeast-2
+
+      - name: Find latest versions from S3
+        run: |
+          # bintools 최신 버전
+          BINTOOLS_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/bintools/ \
+            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+          echo "BINTOOLS_VERSION=$BINTOOLS_VERSION" >> $GITHUB_ENV
+
+          # rpmtools rocky9 최신 버전
+          ROCKY9_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/rpmtools/rocky9/ \
+            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+          echo "ROCKY9_VERSION=$ROCKY9_VERSION" >> $GITHUB_ENV
+
+          # rpmtools rocky8 최신 버전
+          ROCKY8_VERSION=$(aws s3 ls s3://jelly-prd-cdn-static/packages/rpmtools/rocky8/ \
+            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+          echo "ROCKY8_VERSION=$ROCKY8_VERSION" >> $GITHUB_ENV
+
+          echo "Found versions:"
+          echo "  bintools: $BINTOOLS_VERSION"
+          echo "  rocky9: $ROCKY9_VERSION"
+          echo "  rocky8: $ROCKY8_VERSION"
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          pip install mkdocs-material
+      - run: pip install mkdocs-material
 
       - name: Generate docs from metadata
-        run: |
-          python scripts/generate-docs.py
+        run: python scripts/generate-docs.py
 
-      - name: Build MkDocs
-        run: |
-          mkdocs build
+      - run: mkdocs build
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
           path: site/
 
@@ -64,6 +72,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - uses: actions/deploy-pages@v4
         id: deployment
-        uses: actions/deploy-pages@v4
