@@ -6,32 +6,12 @@ Snap 패키지 번들러 - Ubuntu용 시스템 패키지 번들
 
 ## 다운로드
 
-=== "Latest"
-
-    ```bash
-    curl -LO https://files.project-jelly.io/packages/snaptools/latest/snaptools-bundle
-    chmod +x snaptools-bundle
-    ```
-
-=== "특정 버전"
-
-    ```bash
-    VERSION="20250125-2110"
-    curl -LO "https://files.project-jelly.io/packages/snaptools/${VERSION}/snaptools-bundle"
-    chmod +x snaptools-bundle
-    ```
-
----
-
-## 패키지 목록
-
-<!-- PACKAGES_TABLE_START -->
-| Package | Version | Description |
-|---------|---------|-------------|
-<!-- PACKAGES_TABLE_END -->
+<!-- CONTENT_START -->
+_Loading..._
+<!-- CONTENT_END -->
 
 !!! note "자동 업데이트"
-    이 표는 CDN의 metadata.json에서 자동으로 생성됩니다.
+    이 내용은 CDN의 metadata.json에서 자동으로 생성됩니다.
 
 ---
 

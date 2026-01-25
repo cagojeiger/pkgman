@@ -31,32 +31,29 @@ jobs:
         run: |
           S3_BASE="s3://jelly-prd-cdn-static/packages"
 
-          # bintools 최신 버전
+          # bintools - 1단계 (BUILD_DATE)
           BINTOOLS_VERSION=$(aws s3 ls $S3_BASE/bintools/ \
             | awk '{print $2}' | tr -d '/' | sort -r | head -1)
           echo "BINTOOLS_VERSION=$BINTOOLS_VERSION" >> $GITHUB_ENV
 
-          # snaptools 최신 버전
+          # snaptools - 1단계 (BUILD_DATE)
           SNAPTOOLS_VERSION=$(aws s3 ls $S3_BASE/snaptools/ \
             | awk '{print $2}' | tr -d '/' | sort -r | head -1)
           echo "SNAPTOOLS_VERSION=$SNAPTOOLS_VERSION" >> $GITHUB_ENV
 
-          # rpmtools - 동적으로 OS 버전 탐지 (9.5, 8.10 등)
-          RPMTOOLS_OS_VERSIONS=""
+          # rpmtools - 2단계 (OS_VER/BUILD_DATE) → JSON으로 전달
+          RPMTOOLS_DATA="{}"
           for OS_VER in $(aws s3 ls $S3_BASE/rpmtools/ | awk '{print $2}' | tr -d '/'); do
             BUILD_VER=$(aws s3 ls $S3_BASE/rpmtools/$OS_VER/ \
               | awk '{print $2}' | tr -d '/' | sort -r | head -1)
-            # 9.5 → RPMTOOLS_9_5_VERSION
-            VAR_NAME="RPMTOOLS_${OS_VER//./_}_VERSION"
-            echo "${VAR_NAME}=${BUILD_VER}" >> $GITHUB_ENV
-            RPMTOOLS_OS_VERSIONS="${RPMTOOLS_OS_VERSIONS}${OS_VER},"
+            RPMTOOLS_DATA=$(echo "$RPMTOOLS_DATA" | jq -c --arg k "$OS_VER" --arg v "$BUILD_VER" '. + {($k): $v}')
           done
-          echo "RPMTOOLS_OS_VERSIONS=${RPMTOOLS_OS_VERSIONS%,}" >> $GITHUB_ENV
+          echo "RPMTOOLS_DATA=$RPMTOOLS_DATA" >> $GITHUB_ENV
 
-          echo "Found versions:"
-          echo "  bintools: $BINTOOLS_VERSION"
-          echo "  snaptools: $SNAPTOOLS_VERSION"
-          echo "  rpmtools OS versions: ${RPMTOOLS_OS_VERSIONS%,}"
+          echo "=== S3 Versions ==="
+          echo "bintools: $BINTOOLS_VERSION"
+          echo "snaptools: $SNAPTOOLS_VERSION"
+          echo "rpmtools: $RPMTOOLS_DATA"
 
       - uses: actions/setup-python@v5
         with:

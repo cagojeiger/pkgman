@@ -6,59 +6,12 @@ RPM 패키지 번들러 - Rocky Linux용 시스템 패키지 번들
 
 ## 다운로드
 
-=== "Rocky 9 (Latest)"
-
-    ```bash
-    curl -LO https://files.project-jelly.io/packages/rpmtools/9.5/latest/rpmtools-bundle
-    chmod +x rpmtools-bundle
-    ```
-
-=== "Rocky 8 (Latest)"
-
-    ```bash
-    curl -LO https://files.project-jelly.io/packages/rpmtools/8.10/latest/rpmtools-bundle
-    chmod +x rpmtools-bundle
-    ```
-
-=== "특정 버전"
-
-    ```bash
-    VERSION="20250125-2110"
-    OS_VER="9.5"  # 또는 8.10
-    curl -LO "https://files.project-jelly.io/packages/rpmtools/${OS_VER}/${VERSION}/rpmtools-bundle"
-    chmod +x rpmtools-bundle
-    ```
-
----
-
-## 패키지 목록
-
-### Rocky 9
-
-<!-- ROCKY9_PACKAGES_START -->
-| Package | Version | Description |
-|---------|---------|-------------|
-| containerd.io | - | Container runtime |
-| docker-ce | - | Docker engine |
-| docker-ce-cli | - | Docker CLI |
-| docker-buildx-plugin | - | Docker Buildx |
-| docker-compose-plugin | - | Docker Compose |
-<!-- ROCKY9_PACKAGES_END -->
-
-### Rocky 8
-
-<!-- ROCKY8_PACKAGES_START -->
-| Package | Version | Description |
-|---------|---------|-------------|
-| containerd.io | - | Container runtime |
-| docker-ce | - | Docker engine |
-| docker-ce-cli | - | Docker CLI |
-| docker-buildx-plugin | - | Docker Buildx |
-| docker-compose-plugin | - | Docker Compose |
-<!-- ROCKY8_PACKAGES_END -->
+<!-- CONTENT_START -->
+_Loading..._
+<!-- CONTENT_END -->
 
 !!! note "자동 업데이트"
-    이 표는 CDN의 metadata.json에서 자동으로 생성됩니다.
+    이 내용은 CDN의 metadata.json에서 자동으로 생성됩니다.
 
 ---
 
