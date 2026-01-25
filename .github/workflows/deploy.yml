@@ -24,7 +24,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-read
+          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-upload
           aws-region: ap-northeast-2
 
       - name: Find latest versions from S3
