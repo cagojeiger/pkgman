@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>pkgman - 에어갭 환경을 위한 패키지 관리자</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['SF Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
+    <!-- Header -->
+    <header class="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-4">
+        <div class="max-w-4xl mx-auto">
+            <div class="flex justify-between items-center">
+                <a href="#" id="logo" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700">pkgman</a>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        <span class="dark:hidden">☀️</span>
+                        <span class="hidden dark:inline">🌙</span>
+                    </button>
+                    <a href="https://github.com/cagojeiger/pkgman" target="_blank" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300">
+                        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+                    </a>
+                </div>
+            </div>
+            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">에어갭 환경을 위한 패키지 관리자</p>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-4xl mx-auto w-full px-4 py-8">
+        <!-- Main View -->
+        <div id="main-view" class="space-y-4">
+            <div id="cards-container" class="space-y-4">
+                <div class="text-center py-8 text-gray-500">데이터 로딩 중...</div>
+            </div>
+        </div>
+
+        <!-- Detail View -->
+        <div id="detail-view" class="hidden">
+            <button id="back-btn" class="mb-6 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+                ← 뒤로
+            </button>
+            <div id="detail-content"></div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+        <span id="last-updated">Last updated: -</span>
+    </footer>
+
+    <script>
+        const DATA_URL = 'data/packages.json';
+        let packagesData = null;
+
+        // Theme
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        // Copy
+        function copyToClipboard(text, btn) {
+            navigator.clipboard.writeText(text).then(() => {
+                const orig = btn.innerHTML;
+                btn.innerHTML = '✓';
+                btn.classList.add('text-green-500');
+                setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('text-green-500'); }, 1500);
+            });
+        }
+
+        // Render Cards
+        function renderCards(data) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+
+            ['bintools', 'rpmtools', 'snaptools'].forEach(name => {
+                if (!data.tools[name]) return;
+                container.appendChild(createCard(data.tools[name]));
+            });
+
+            const date = new Date(data.generated_at);
+            document.getElementById('last-updated').textContent = `Last updated: ${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
+        }
+
+        function createCard(tool) {
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow';
+
+            const isRpm = tool.name === 'rpmtools';
+            let version, url, pkgCount;
+
+            if (isRpm) {
+                const os = Object.keys(tool.os_versions).sort().reverse()[0];
+                version = `Rocky ${os}`;
+                url = tool.os_versions[os].download_url;
+                pkgCount = tool.os_versions[os].packages.length;
+            } else {
+                version = tool.version;
+                url = tool.download_url;
+                pkgCount = tool.packages.length;
+            }
+
+            const pkgs = isRpm ? tool.os_versions[Object.keys(tool.os_versions)[0]].packages : tool.packages;
+            const summary = pkgs.slice(0, 3).map(p => p.name).join(', ');
+            const cmd = `curl -LO "${url}" && chmod +x ${tool.name === 'bintools' ? 'bintools' : tool.name + '-bundle'}`;
+
+            card.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-2xl">📦</span>
+                        <span class="text-lg font-semibold">${tool.name}</span>
+                    </div>
+                    <span class="text-sm text-gray-500 dark:text-gray-400">${version}</span>
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${tool.description} - ${summary} 외 ${Math.max(0, pkgCount - 3)}개</p>
+                <div class="flex items-center gap-2 mb-3">
+                    <div class="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 overflow-x-auto">
+                        <code class="text-xs font-mono whitespace-nowrap">${cmd}</code>
+                    </div>
+                    <button onclick="copyToClipboard('${cmd.replace(/'/g, "\\'")}', this)" class="p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500">📋</button>
+                </div>
+                <div class="text-right">
+                    <a href="#${tool.name}" class="text-indigo-600 dark:text-indigo-400 text-sm font-medium hover:underline">상세 →</a>
+                </div>
+            `;
+            return card;
+        }
+
+        // Detail View
+        function renderDetail(name) {
+            if (!packagesData?.tools[name]) return showMain();
+
+            const tool = packagesData.tools[name];
+            const content = document.getElementById('detail-content');
+            const isRpm = name === 'rpmtools';
+
+            let html = `
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">📦</span>
+                    <h1 class="text-2xl font-bold">${tool.name}</h1>
+                </div>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">${tool.description}</p>
+            `;
+
+            if (isRpm) {
+                const versions = Object.keys(tool.os_versions).sort().reverse();
+                html += `<div class="flex gap-2 mb-4">${versions.map((v, i) =>
+                    `<button class="os-tab px-4 py-2 rounded-lg border ${i === 0 ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'}" data-os="${v}">Rocky ${v}</button>`
+                ).join('')}</div>`;
+
+                versions.forEach((os, i) => {
+                    const d = tool.os_versions[os];
+                    html += `
+                        <div class="os-content ${i > 0 ? 'hidden' : ''}" data-os="${os}">
+                            <p class="text-sm text-gray-500 mb-3">Build: ${d.build}</p>
+                            <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 relative">
+                                <pre class="text-sm font-mono overflow-x-auto"><code>curl -LO "${d.download_url}"
+chmod +x rpmtools-bundle
+sudo ./rpmtools-bundle</code></pre>
+                                <button onclick="copyToClipboard(this.closest('.relative').querySelector('code').textContent, this)" class="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500">📋</button>
+                            </div>
+                            <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${d.packages.length})</h2>
+                            ${renderTable(d.packages)}
+                        </div>
+                    `;
+                });
+            } else {
+                const cmd = tool.name === 'bintools'
+                    ? `curl -LO "${tool.download_url}"\nchmod +x bintools\n./bintools install kubectl helm`
+                    : `curl -LO "${tool.download_url}"\nchmod +x ${tool.name}-bundle\nsudo ./${tool.name}-bundle`;
+
+                html += `
+                    <p class="text-sm text-gray-500 mb-3">Build: ${tool.version}</p>
+                    <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-6 relative">
+                        <pre class="text-sm font-mono overflow-x-auto"><code>${cmd}</code></pre>
+                        <button onclick="copyToClipboard(this.closest('.relative').querySelector('code').textContent, this)" class="absolute top-2 right-2 p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500">📋</button>
+                    </div>
+                    <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${tool.packages.length})</h2>
+                    ${renderTable(tool.packages)}
+                `;
+            }
+
+            content.innerHTML = html;
+
+            // OS tabs
+            content.querySelectorAll('.os-tab').forEach(tab => {
+                tab.onclick = () => {
+                    content.querySelectorAll('.os-tab').forEach(t => t.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600'));
+                    content.querySelectorAll('.os-tab').forEach(t => t.classList.add('border-gray-300', 'dark:border-gray-600'));
+                    tab.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
+                    tab.classList.remove('border-gray-300', 'dark:border-gray-600');
+                    content.querySelectorAll('.os-content').forEach(c => c.classList.add('hidden'));
+                    content.querySelector(`.os-content[data-os="${tab.dataset.os}"]`).classList.remove('hidden');
+                };
+            });
+
+            document.getElementById('main-view').classList.add('hidden');
+            document.getElementById('detail-view').classList.remove('hidden');
+        }
+
+        function renderTable(pkgs) {
+            if (!pkgs?.length) return '<p class="text-gray-500">패키지 정보 없음</p>';
+            return `
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="bg-gray-100 dark:bg-gray-800">
+                            <tr>
+                                <th class="px-4 py-2 text-left font-semibold">Package</th>
+                                <th class="px-4 py-2 text-left font-semibold">Version</th>
+                                <th class="px-4 py-2 text-left font-semibold">Description</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            ${pkgs.map(p => `
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                    <td class="px-4 py-2 font-mono font-medium">${p.name}</td>
+                                    <td class="px-4 py-2 font-mono text-gray-500">${p.version || '-'}</td>
+                                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${p.description || '-'}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        function showMain() {
+            document.getElementById('detail-view').classList.add('hidden');
+            document.getElementById('main-view').classList.remove('hidden');
+            history.pushState(null, '', location.pathname);
+        }
+
+        // Routing
+        function handleHash() {
+            const hash = location.hash.slice(1);
+            hash && packagesData ? renderDetail(hash) : showMain();
+        }
+
+        document.getElementById('back-btn').onclick = showMain;
+        document.getElementById('logo').onclick = (e) => { e.preventDefault(); showMain(); };
+        window.onhashchange = handleHash;
+
+        // Init
+        async function init() {
+            initTheme();
+            try {
+                const res = await fetch(DATA_URL);
+                if (!res.ok) throw new Error();
+                packagesData = await res.json();
+                renderCards(packagesData);
+                handleHash();
+            } catch {
+                document.getElementById('cards-container').innerHTML = '<div class="text-center py-8 text-red-500">데이터를 불러오는데 실패했습니다.</div>';
+            }
+        }
+        init();
+    </script>
+</body>
+</html>

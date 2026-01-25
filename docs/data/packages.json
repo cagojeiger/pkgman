@@ -1,0 +1,168 @@
+{
+  "generated_at": "2026-01-25T15:57:19.604355+00:00",
+  "cdn_base": "https://files.project-jelly.io/packages",
+  "tools": {
+    "bintools": {
+      "name": "bintools",
+      "description": "Go 바이너리 패키지 관리자",
+      "version": "20260125-1217",
+      "download_url": "https://files.project-jelly.io/packages/bintools/20260125-1217/bintools",
+      "packages": [
+        {
+          "name": "argocd",
+          "version": "v3.2.6",
+          "description": "Declarative GitOps CD for Kubernetes",
+          "homepage": "https://argo-cd.readthedocs.io"
+        },
+        {
+          "name": "gh",
+          "version": "v2.86.0",
+          "description": "GitHub CLI - GitHub on the command line",
+          "homepage": "https://cli.github.com"
+        },
+        {
+          "name": "gix",
+          "version": "v0.50.0",
+          "description": "A pure Rust implementation of Git with no dependencies",
+          "homepage": "https://github.com/GitoxideLabs/gitoxide"
+        },
+        {
+          "name": "helm",
+          "version": "v4.1.0",
+          "description": "Kubernetes package manager",
+          "homepage": "https://helm.sh"
+        },
+        {
+          "name": "jq",
+          "version": "jq-1.8.1",
+          "description": "Command-line JSON processor",
+          "homepage": "https://jqlang.github.io/jq/"
+        },
+        {
+          "name": "k9s",
+          "version": "v0.50.18",
+          "description": "Kubernetes CLI to manage your clusters in style",
+          "homepage": "https://k9scli.io"
+        },
+        {
+          "name": "kubectl",
+          "version": "v1.35.0",
+          "description": "Kubernetes command-line tool",
+          "homepage": "https://kubernetes.io"
+        },
+        {
+          "name": "lazygit",
+          "version": "v0.58.1",
+          "description": "A simple terminal UI for git commands",
+          "homepage": "https://github.com/jesseduffield/lazygit"
+        },
+        {
+          "name": "mc",
+          "version": "2026.01.25",
+          "description": "MinIO Client - replacement for ls, cp, mkdir, diff and rsync for cloud storage",
+          "homepage": "https://min.io/docs/minio/linux/reference/minio-mc.html"
+        },
+        {
+          "name": "skopeo",
+          "version": "v1.21.0",
+          "description": "Work with remote images registries - retrieving information, images, signing content",
+          "homepage": "https://github.com/containers/skopeo"
+        },
+        {
+          "name": "yq",
+          "version": "v4.50.1",
+          "description": "Portable command-line YAML processor",
+          "homepage": "https://mikefarah.gitbook.io/yq"
+        }
+      ]
+    },
+    "rpmtools": {
+      "name": "rpmtools",
+      "description": "RPM 패키지 번들러",
+      "os_versions": {
+        "9.2": {
+          "build": "20260125-1218",
+          "download_url": "https://files.project-jelly.io/packages/rpmtools/9.2/20260125-1218/rpmtools-bundle",
+          "packages": [
+            {
+              "name": "fio",
+              "version": "3.35",
+              "description": "Flexible I/O Tester for storage benchmarking"
+            },
+            {
+              "name": "git",
+              "version": "2.47.3",
+              "description": "Distributed version control system"
+            },
+            {
+              "name": "rsync",
+              "version": "3.2.5",
+              "description": "Fast incremental file transfer utility"
+            },
+            {
+              "name": "snapd",
+              "version": "2.72",
+              "description": "Universal Linux package manager (Snap packages support)"
+            }
+          ]
+        }
+      }
+    },
+    "snaptools": {
+      "name": "snaptools",
+      "description": "Snap 패키지 번들러",
+      "version": "20260125-1430",
+      "download_url": "https://files.project-jelly.io/packages/snaptools/20260125-1430/snaptools-bundle",
+      "packages": [
+        {
+          "name": "core20",
+          "version": "20251031",
+          "channel": "stable",
+          "description": "Runtime environment based on Ubuntu 20.04"
+        },
+        {
+          "name": "core22",
+          "version": "20251125",
+          "channel": "stable",
+          "description": "Runtime environment based on Ubuntu 22.04"
+        },
+        {
+          "name": "microk8s-1.31",
+          "version": "v1.31.14",
+          "channel": "1.31/stable",
+          "description": "Lightweight Kubernetes 1.31"
+        },
+        {
+          "name": "microk8s-1.32",
+          "version": "v1.32.9",
+          "channel": "1.32/stable",
+          "description": "Lightweight Kubernetes 1.32"
+        },
+        {
+          "name": "microk8s-1.33",
+          "version": "v1.33.7",
+          "channel": "1.33/stable",
+          "description": "Lightweight Kubernetes 1.33"
+        },
+        {
+          "name": "microk8s-1.34",
+          "version": "v1.34.3",
+          "channel": "1.34/stable",
+          "description": "Lightweight Kubernetes 1.34"
+        },
+        {
+          "name": "microk8s-1.35",
+          "version": "v1.35.0",
+          "channel": "1.35/stable",
+          "description": "Lightweight Kubernetes 1.35"
+        },
+        {
+          "name": "snapd",
+          "version": "2.73",
+          "channel": "stable",
+          "description": "Snap package manager daemon"
+        }
+      ]
+    }
+  }
+}
