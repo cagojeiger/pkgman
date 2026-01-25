@@ -1,20 +1,12 @@
 name: Deploy Docs
 
 on:
-  # 수동 실행
   workflow_dispatch:
-  # pkgman-core에서 트리거 (선택적)
   repository_dispatch:
     types: [update-docs]
-  # main 브랜치 푸시 시
   push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-      - 'scripts/**'
-      - '.github/workflows/deploy.yml'
+    branches: [main]
+    paths: ['docs/**', 'scripts/**', '.github/workflows/deploy.yml']
 
 permissions:
   contents: read
@@ -29,33 +21,53 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-upload
+          aws-region: ap-northeast-2
+
+      - name: Find latest versions from S3
+        run: |
+          S3_BASE="s3://jelly-prd-cdn-static/packages"
+
+          # bintools - 1단계 (BUILD_DATE)
+          BINTOOLS_VERSION=$(aws s3 ls $S3_BASE/bintools/ \
+            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+          echo "BINTOOLS_VERSION=$BINTOOLS_VERSION" >> $GITHUB_ENV
+
+          # snaptools - 1단계 (BUILD_DATE)
+          SNAPTOOLS_VERSION=$(aws s3 ls $S3_BASE/snaptools/ \
+            | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+          echo "SNAPTOOLS_VERSION=$SNAPTOOLS_VERSION" >> $GITHUB_ENV
+
+          # rpmtools - 2단계 (OS_VER/BUILD_DATE) → JSON으로 전달
+          RPMTOOLS_DATA="{}"
+          for OS_VER in $(aws s3 ls $S3_BASE/rpmtools/ | awk '{print $2}' | tr -d '/'); do
+            BUILD_VER=$(aws s3 ls $S3_BASE/rpmtools/$OS_VER/ \
+              | awk '{print $2}' | tr -d '/' | sort -r | head -1)
+            RPMTOOLS_DATA=$(echo "$RPMTOOLS_DATA" | jq -c --arg k "$OS_VER" --arg v "$BUILD_VER" '. + {($k): $v}')
+          done
+          echo "RPMTOOLS_DATA=$RPMTOOLS_DATA" >> $GITHUB_ENV
+
+          echo "=== S3 Versions ==="
+          echo "bintools: $BINTOOLS_VERSION"
+          echo "snaptools: $SNAPTOOLS_VERSION"
+          echo "rpmtools: $RPMTOOLS_DATA"
+
+      - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install dependencies
-        run: |
-          pip install mkdocs-material
+      - name: Generate packages.json
+        run: python scripts/generate-index.py
 
-      - name: Generate docs from metadata
-        run: |
-          python scripts/generate-docs.py
-
-      - name: Build MkDocs
-        run: |
-          mkdocs build
-
-      - name: Setup Pages
-        uses: actions/configure-pages@v4
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: site/
+          path: docs/
 
   deploy:
     needs: build
@@ -64,6 +76,5 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy to GitHub Pages
+      - uses: actions/deploy-pages@v4
         id: deployment
-        uses: actions/deploy-pages@v4
