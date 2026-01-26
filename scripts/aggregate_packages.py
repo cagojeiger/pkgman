@@ -38,6 +38,10 @@ TOOLS: dict[str, dict] = {
         "type": "os_versioned",
         "description": "RPM 패키지 번들러",
     },
+    "debtools": {
+        "type": "os_versioned",
+        "description": "DEB 패키지 번들러",
+    },
 }
 
 # ---------------------------------------------------------------------------
@@ -139,13 +143,17 @@ def process_simple(tool_name: str, description: str) -> dict | None:
     if meta is None:
         return None
 
-    return {
+    result = {
         "name": tool_name,
         "description": description,
         "version": latest,
         "download_url": download_url_simple(tool_name, latest),
         "packages": meta.get("packages", []),
     }
+    for key in ("sha256", "file_size", "arch"):
+        if meta.get(key):
+            result[key] = meta[key]
+    return result
 
 
 def process_os_versioned(tool_name: str, description: str) -> dict | None:
@@ -175,11 +183,15 @@ def process_os_versioned(tool_name: str, description: str) -> dict | None:
         if meta is None:
             continue
 
-        os_data[os_ver] = {
+        entry = {
             "build": latest,
             "download_url": download_url_os_versioned(tool_name, os_ver, latest),
             "packages": meta.get("packages", []),
         }
+        for key in ("sha256", "file_size", "arch"):
+            if meta.get(key):
+                entry[key] = meta[key]
+        os_data[os_ver] = entry
 
     if not os_data:
         return None
