@@ -274,7 +274,6 @@ sudo ./snaptools install microk8s
 
             const isOsVersioned = !!tool.os_versions;
             let version, build, url, pkgCount;
-
             let fileSize, arch;
 
             if (isOsVersioned) {
@@ -636,8 +635,6 @@ sudo ./${bundleName}</code></pre>
 
         // Details arrow rotation
         document.querySelectorAll('details').forEach(d => {
-            const arrow = d.querySelector('.details-arrow');
-            if (arrow && d.open) arrow.style.transform = 'rotate(90deg)';
             d.addEventListener('toggle', () => {
                 const arrow = d.querySelector('.details-arrow');
                 if (arrow) arrow.style.transform = d.open ? 'rotate(90deg)' : '';
