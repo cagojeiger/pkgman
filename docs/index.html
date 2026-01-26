@@ -27,33 +27,33 @@
             right: 0;
             bottom: 0;
             width: 2rem;
-            background: linear-gradient(to right, transparent, var(--code-bg, #f3f4f6));
+            background: linear-gradient(to right, transparent, var(--code-bg, #f5f5f4));
             pointer-events: none;
             border-radius: 0 0.5rem 0.5rem 0;
             opacity: 0;
             transition: opacity 0.2s;
         }
         .code-scroll-container.has-overflow::after { opacity: 1; }
-        .dark .code-scroll-container::after { --code-bg: #111827; }
+        .dark .code-scroll-container::after { --code-bg: #1c1917; }
     </style>
 </head>
-<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 min-h-screen flex flex-col transition-colors">
+<body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
     <!-- Header -->
-    <header class="bg-gray-100/90 dark:bg-gray-800/90 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
+    <header class="bg-stone-100/90 dark:bg-stone-800/90 border-b border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
         <div class="max-w-6xl mx-auto">
             <div class="flex justify-between items-center">
-                <a href="#" id="logo" class="text-2xl font-bold text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 rounded">pkgman</a>
+                <a href="#" id="logo" class="text-2xl font-bold text-teal-600 dark:text-teal-400 hover:text-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 rounded">pkgman</a>
                 <div class="flex items-center gap-2">
-                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <button id="theme-toggle" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
                         <span class="dark:hidden">☀️</span>
                         <span class="hidden dark:inline">🌙</span>
                     </button>
-                    <a href="https://github.com/cagojeiger/pkgman" target="_blank" class="p-2 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                    <a href="https://github.com/cagojeiger/pkgman" target="_blank" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
                         <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                     </a>
                 </div>
             </div>
-            <p class="text-gray-500 dark:text-gray-400 text-sm mt-1">에어갭 환경을 위한 패키지 관리자</p>
+            <p class="text-stone-500 dark:text-stone-400 text-sm mt-1">에어갭 환경을 위한 패키지 관리자</p>
         </div>
     </header>
 
@@ -61,38 +61,39 @@
     <main class="flex-1 max-w-6xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         <!-- Main View -->
         <div id="main-view" class="space-y-6">
-            <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="text-center py-8 text-gray-500 col-span-full">데이터 로딩 중...</div>
+            <div id="hero-section" class="mb-2"></div>
+            <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="text-center py-8 text-stone-500 col-span-full">데이터 로딩 중...</div>
             </div>
 
             <!-- Airgap Transfer Guide -->
-            <details class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-                <summary class="px-5 py-4 cursor-pointer text-sm font-semibold text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 list-none flex items-center gap-2">
+            <details open class="bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl shadow-sm">
+                <summary class="px-5 py-4 cursor-pointer text-sm font-semibold text-stone-700 dark:text-stone-300 hover:bg-stone-50 dark:hover:bg-stone-750 rounded-xl focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 list-none flex items-center gap-2">
                     <svg class="w-4 h-4 transition-transform details-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                     에어갭(폐쇄망) 전송 가이드
                 </summary>
-                <div class="px-5 pb-5 text-sm text-gray-600 dark:text-gray-400 space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <div class="px-5 pb-5 text-sm text-stone-600 dark:text-stone-400 space-y-3 border-t border-stone-200 dark:border-stone-700 pt-4">
                     <div class="flex gap-3">
-                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">1</span>
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xs font-bold">1</span>
                         <div>
-                            <p class="font-medium text-gray-700 dark:text-gray-300">인터넷 PC에서 다운로드</p>
-                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">각 도구의 <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">curl</code> 명령어로 번들을 다운로드합니다.</p>
+                            <p class="font-medium text-stone-700 dark:text-stone-300">인터넷 PC에서 다운로드</p>
+                            <p class="text-stone-500 dark:text-stone-400 mt-0.5">각 도구의 <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">curl</code> 명령어로 번들을 다운로드합니다.</p>
                         </div>
                     </div>
                     <div class="flex gap-3">
-                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">2</span>
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xs font-bold">2</span>
                         <div>
-                            <p class="font-medium text-gray-700 dark:text-gray-300">USB/물리매체로 반입</p>
-                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">다운로드한 번들 파일을 USB 등 물리적 매체에 복사하여 폐쇄망으로 반입합니다.</p>
+                            <p class="font-medium text-stone-700 dark:text-stone-300">USB/물리매체로 반입</p>
+                            <p class="text-stone-500 dark:text-stone-400 mt-0.5">다운로드한 번들 파일을 USB 등 물리적 매체에 복사하여 폐쇄망으로 반입합니다.</p>
                         </div>
                     </div>
                     <div class="flex gap-3">
-                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-xs font-bold">3</span>
+                        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 flex items-center justify-center text-xs font-bold">3</span>
                         <div>
-                            <p class="font-medium text-gray-700 dark:text-gray-300">폐쇄망에서 실행</p>
-                            <p class="text-gray-500 dark:text-gray-400 mt-0.5">
-                                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">bintools</code> - <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">chmod +x</code> 후 직접 실행<br>
-                                <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">snaptools/rpmtools/debtools</code> - <code class="bg-gray-100 dark:bg-gray-700 px-1 rounded">sudo ./bundle</code>로 시스템에 설치
+                            <p class="font-medium text-stone-700 dark:text-stone-300">폐쇄망에서 실행</p>
+                            <p class="text-stone-500 dark:text-stone-400 mt-0.5">
+                                <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">bintools</code> - <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">chmod +x</code> 후 직접 실행<br>
+                                <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">snaptools/rpmtools/debtools</code> - <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">sudo ./bundle</code>로 시스템에 설치
                             </p>
                         </div>
                     </div>
@@ -102,7 +103,7 @@
 
         <!-- Detail View -->
         <div id="detail-view" class="hidden">
-            <button id="back-btn" class="mb-6 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+            <button id="back-btn" class="mb-6 px-4 py-2 border border-stone-300 dark:border-stone-600 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
                 ← 목록으로 돌아가기
             </button>
             <div id="detail-content"></div>
@@ -110,7 +111,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-100 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+    <footer class="bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-stone-500 dark:text-stone-400">
         <span id="last-updated">Last updated: -</span>
     </footer>
 
@@ -208,6 +209,52 @@ sudo ./snaptools install microk8s
             const container = document.getElementById('cards-container');
             container.innerHTML = '';
 
+            // Hero section: airgap-focused stats
+            const heroEl = document.getElementById('hero-section');
+            if (heroEl) {
+                const toolNames = Object.keys(data.tools);
+                const toolCount = toolNames.length;
+                let totalSize = 0;
+                let totalPkgs = 0;
+                const osSet = new Set();
+                const archSet = new Set();
+
+                Object.values(data.tools).forEach(t => {
+                    if (t.os_versions) {
+                        Object.entries(t.os_versions).forEach(([osVer, osData]) => {
+                            const builds = osData.builds || [osData];
+                            const latest = builds[0];
+                            totalSize += latest.file_size || 0;
+                            totalPkgs += latest.packages.length;
+                            const osLabel = t.name === 'rpmtools' ? `RHEL ${osVer}` : `Ubuntu ${osVer}`;
+                            osSet.add(osLabel);
+                            if (latest.arch) latest.arch.split(',').forEach(a => archSet.add(a.trim()));
+                        });
+                    } else {
+                        const builds = t.builds || [t];
+                        const latest = builds[0];
+                        totalSize += latest.file_size || 0;
+                        totalPkgs += latest.packages.length;
+                        if (latest.arch) latest.arch.split(',').forEach(a => archSet.add(a.trim()));
+                    }
+                });
+
+                const platforms = [...osSet].sort().join(' · ');
+                const archs = [...archSet].sort().join(' · ');
+                const supportLine = [platforms, archs].filter(Boolean).join(' · ');
+
+                heroEl.innerHTML = `
+                    <h2 class="text-xl font-bold mb-2">에어갭 환경을 위한 올인원 패키지 관리</h2>
+                    <p class="text-stone-500 dark:text-stone-400 mb-4">인터넷 없는 폐쇄망에서 DevOps 도구를 손쉽게 배포하세요</p>
+                    <div class="flex flex-wrap gap-3 mb-3">
+                        <span class="px-3 py-1.5 bg-teal-50 text-teal-700 dark:bg-teal-900/20 dark:text-teal-400 rounded-lg text-sm font-medium">📦 전체 ${formatSize(totalSize)}</span>
+                        <span class="px-3 py-1.5 bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-400 rounded-lg text-sm font-medium">🔧 ${toolCount}개 도구</span>
+                        <span class="px-3 py-1.5 bg-sky-50 text-sky-700 dark:bg-sky-900/20 dark:text-sky-400 rounded-lg text-sm font-medium">📋 ${totalPkgs}개 패키지</span>
+                    </div>
+                    ${supportLine ? `<p class="text-xs text-stone-400 dark:text-stone-500">지원: ${supportLine}</p>` : ''}
+                `;
+            }
+
             ['bintools', 'rpmtools', 'debtools', 'snaptools'].forEach(name => {
                 if (!data.tools[name]) return;
                 container.appendChild(createCard(data.tools[name]));
@@ -221,12 +268,13 @@ sudo ./snaptools install microk8s
 
         function createCard(tool) {
             const card = document.createElement('div');
-            card.className = 'bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2';
+            card.className = 'bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700 rounded-xl p-5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2';
             card.setAttribute('role', 'button');
             card.setAttribute('tabindex', '0');
 
             const isOsVersioned = !!tool.os_versions;
             let version, build, url, pkgCount;
+            let fileSize, arch;
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
@@ -237,6 +285,8 @@ sudo ./snaptools install microk8s
                 build = latest.build;
                 url = latest.download_url;
                 pkgCount = latest.packages.length;
+                fileSize = latest.file_size;
+                arch = latest.arch;
             } else {
                 const builds = getBuilds(tool);
                 const latest = builds[0];
@@ -244,6 +294,8 @@ sudo ./snaptools install microk8s
                 build = null;
                 url = latest.download_url;
                 pkgCount = latest.packages.length;
+                fileSize = latest.file_size;
+                arch = latest.arch;
             }
 
             const latestOs = isOsVersioned ? Object.keys(tool.os_versions).sort().reverse()[0] : null;
@@ -257,20 +309,25 @@ sudo ./snaptools install microk8s
                         <span class="text-2xl">📦</span>
                         <span class="text-lg font-semibold">${tool.name}</span>
                     </div>
-                    <div class="text-right text-sm text-gray-500 dark:text-gray-400">
+                    <div class="text-right text-sm text-stone-500 dark:text-stone-400">
                         <div>${version}</div>
                         <div class="text-xs">${build || '&nbsp;'}</div>
                     </div>
                 </div>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${tool.description} - ${summary} 외 ${remaining}개</p>
+                <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">${tool.description} - ${summary} 외 ${remaining}개</p>
+                <div class="flex flex-wrap gap-1.5 mb-3">
+                    ${pkgCount > 0 ? `<span class="px-2 py-0.5 bg-stone-100 dark:bg-stone-700 rounded text-xs font-medium">${pkgCount}개 패키지</span>` : ''}
+                    ${formatSize(fileSize) ? `<span class="px-2 py-0.5 bg-stone-100 dark:bg-stone-700 rounded text-xs font-medium">${formatSize(fileSize)}</span>` : ''}
+                    ${arch ? arch.split(',').map(a => `<span class="px-2 py-0.5 bg-stone-100 dark:bg-stone-700 rounded text-xs font-medium">${a.trim()}</span>`).join('') : ''}
+                </div>
                 <div class="flex items-center gap-2 mb-3 relative code-scroll-container">
-                    <div class="flex-1 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2 overflow-x-auto">
+                    <div class="flex-1 bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg px-3 py-2 overflow-x-auto">
                         <code class="text-xs font-mono whitespace-nowrap">curl -LO "${url}"</code>
                     </div>
-                    <button class="copy-btn p-2 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-500 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
+                    <button class="copy-btn p-2 hover:bg-stone-200 dark:hover:bg-stone-700 rounded-lg transition-colors text-stone-500 flex-shrink-0 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="복사">📋</button>
                 </div>
                 <div class="text-right mt-auto">
-                    <span class="text-indigo-600 dark:text-indigo-400 text-sm font-medium">상세 →</span>
+                    <span class="text-teal-600 dark:text-teal-400 text-sm font-medium">상세 →</span>
                 </div>
             `;
 
@@ -310,7 +367,7 @@ sudo ./snaptools install microk8s
                     <span class="text-3xl">📦</span>
                     <h1 class="text-2xl font-bold">${tool.name}</h1>
                 </div>
-                <p class="text-gray-600 dark:text-gray-400 mb-4">${tool.description}</p>
+                <p class="text-stone-600 dark:text-stone-400 mb-4">${tool.description}</p>
             `;
 
             if (isOsVersioned) {
@@ -319,7 +376,7 @@ sudo ./snaptools install microk8s
                 // Only show tabs if more than one OS version
                 if (versions.length > 1) {
                     html += `<div class="flex gap-2 mb-4 flex-wrap">${versions.map((v, i) =>
-                        `<button class="os-tab px-4 py-2 rounded-lg border text-sm ${i === 0 ? 'bg-indigo-600 text-white border-indigo-600' : 'border-gray-300 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'} focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" data-os="${v}">${osLabel} ${v}</button>`
+                        `<button class="os-tab px-4 py-2 rounded-lg border text-sm ${i === 0 ? 'bg-teal-600 text-white border-teal-600' : 'border-stone-300 dark:border-stone-600 hover:bg-stone-100 dark:hover:bg-stone-800'} focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" data-os="${v}">${osLabel} ${v}</button>`
                     ).join('')}</div>`;
                 }
 
@@ -334,14 +391,14 @@ sudo ./snaptools install microk8s
                     if (builds.length > 1) {
                         html += `
                             <div class="mb-4 flex items-center gap-2">
-                                <span class="text-sm text-gray-500">${singleVersion ? `${osLabel} ${os} · ` : ''}Build:</span>
-                                <select class="build-select text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" data-os="${os}">
+                                <span class="text-sm text-stone-500">${singleVersion ? `${osLabel} ${os} · ` : ''}Build:</span>
+                                <select class="build-select text-sm border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500" data-os="${os}">
                                     ${builds.map((b, bi) => `<option value="${bi}">${b.build}</option>`).join('')}
                                 </select>
                             </div>
                         `;
                     } else {
-                        html += `<p class="text-sm text-gray-500 mb-4">${singleVersion ? `${osLabel} ${os} · ` : ''}Build: ${builds[0].build}</p>`;
+                        html += `<p class="text-sm text-stone-500 mb-4">${singleVersion ? `${osLabel} ${os} · ` : ''}Build: ${builds[0].build}</p>`;
                     }
 
                     builds.forEach((d, bi) => {
@@ -353,11 +410,11 @@ sudo ./snaptools install microk8s
                         // Download section
                         html += `
                             <h2 class="text-base font-semibold mb-2">📥 다운로드</h2>
-                            <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                            <div class="bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                                 <pre class="text-sm font-mono overflow-x-auto"><code>curl -LO "${d.download_url}"
 chmod +x ${bundleName}
 sudo ./${bundleName}</code></pre>
-                                <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
+                                <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="복사">📋</button>
                             </div>
                         `;
 
@@ -382,14 +439,14 @@ sudo ./${bundleName}</code></pre>
                 if (builds.length > 1) {
                     html += `
                         <div class="mb-4 flex items-center gap-2">
-                            <span class="text-sm text-gray-500">Build:</span>
-                            <select class="build-select text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                            <span class="text-sm text-stone-500">Build:</span>
+                            <select class="build-select text-sm border border-stone-300 dark:border-stone-600 bg-white dark:bg-stone-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500">
                                 ${builds.map((b, bi) => `<option value="${bi}">${b.version}</option>`).join('')}
                             </select>
                         </div>
                     `;
                 } else {
-                    html += `<p class="text-sm text-gray-500 mb-4">Build: ${builds[0].version}</p>`;
+                    html += `<p class="text-sm text-stone-500 mb-4">Build: ${builds[0].version}</p>`;
                 }
 
                 builds.forEach((d, bi) => {
@@ -405,9 +462,9 @@ sudo ./${bundleName}</code></pre>
                     // Download section
                     html += `
                         <h2 class="text-base font-semibold mb-2">📥 다운로드</h2>
-                        <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                        <div class="bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                             <pre class="text-sm font-mono overflow-x-auto"><code>${cmd}</code></pre>
-                            <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
+                            <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="복사">📋</button>
                         </div>
                     `;
 
@@ -445,11 +502,11 @@ sudo ./${bundleName}</code></pre>
             content.querySelectorAll('.os-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
                     content.querySelectorAll('.os-tab').forEach(t => {
-                        t.classList.remove('bg-indigo-600', 'text-white', 'border-indigo-600');
-                        t.classList.add('border-gray-300', 'dark:border-gray-600');
+                        t.classList.remove('bg-teal-600', 'text-white', 'border-teal-600');
+                        t.classList.add('border-stone-300', 'dark:border-stone-600');
                     });
-                    tab.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
-                    tab.classList.remove('border-gray-300', 'dark:border-gray-600');
+                    tab.classList.add('bg-teal-600', 'text-white', 'border-teal-600');
+                    tab.classList.remove('border-stone-300', 'dark:border-stone-600');
                     content.querySelectorAll('.os-content').forEach(c => c.classList.add('hidden'));
                     const osContent = content.querySelector(`.os-content[data-os="${tab.dataset.os}"]`);
                     osContent.classList.remove('hidden');
@@ -488,15 +545,15 @@ sudo ./${bundleName}</code></pre>
         function renderMetaBadges(pkgCount, fileSize, arch) {
             const badges = [];
             if (pkgCount > 0) {
-                badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"><span class="font-semibold">${pkgCount}개</span><span class="text-gray-500 dark:text-gray-400">패키지</span></div>`);
+                badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-lg text-sm"><span class="font-semibold">${pkgCount}개</span><span class="text-stone-500 dark:text-stone-400">패키지</span></div>`);
             }
             const sizeStr = formatSize(fileSize);
             if (sizeStr) {
-                badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"><span class="font-semibold">${sizeStr}</span></div>`);
+                badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-lg text-sm"><span class="font-semibold">${sizeStr}</span></div>`);
             }
             if (arch) {
                 arch.split(',').forEach(a => {
-                    badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm"><span class="font-semibold">${a.trim()}</span></div>`);
+                    badges.push(`<div class="flex items-center gap-1.5 px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-lg text-sm"><span class="font-semibold">${a.trim()}</span></div>`);
                 });
             }
             if (badges.length === 0) return '';
@@ -509,14 +566,14 @@ sudo ./${bundleName}</code></pre>
             const verifyCmd = `echo "${sha256}  ${filename}" | sha256sum -c`;
             return `
                 <h2 class="text-base font-semibold mb-2">🔒 SHA256</h2>
-                <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                <div class="bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                     <pre class="text-sm font-mono overflow-x-auto"><code>${sha256}</code></pre>
-                    <button class="copy-sha-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="SHA256 복사">📋</button>
+                    <button class="copy-sha-btn absolute top-2 right-2 p-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="SHA256 복사">📋</button>
                 </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">검증 명령어</p>
-                <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                <p class="text-xs text-stone-500 dark:text-stone-400 mb-1">검증 명령어</p>
+                <div class="bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                     <pre class="text-sm font-mono overflow-x-auto"><code>${verifyCmd}</code></pre>
-                    <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="검증 명령어 복사">📋</button>
+                    <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="검증 명령어 복사">📋</button>
                 </div>
             `;
         }
@@ -527,31 +584,31 @@ sudo ./${bundleName}</code></pre>
             const text = typeof usage === 'function' ? usage(os) : usage;
             return `
                 <h2 class="text-base font-semibold mb-2">📖 사용법</h2>
-                <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                <div class="bg-stone-100 dark:bg-stone-900 border border-stone-200 dark:border-stone-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                     <pre class="text-sm font-mono overflow-x-auto"><code>${text}</code></pre>
-                    <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="사용법 복사">📋</button>
+                    <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-stone-200 dark:hover:bg-stone-700 rounded text-stone-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2" aria-label="사용법 복사">📋</button>
                 </div>
             `;
         }
 
         function renderTable(pkgs) {
-            if (!pkgs?.length) return '<p class="text-gray-500">패키지 정보 없음</p>';
+            if (!pkgs?.length) return '<p class="text-stone-500">패키지 정보 없음</p>';
             return `
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
-                        <thead class="bg-gray-100 dark:bg-gray-800">
+                        <thead class="bg-stone-100 dark:bg-stone-800">
                             <tr>
                                 <th class="px-4 py-2 text-left font-semibold">Package</th>
                                 <th class="px-4 py-2 text-left font-semibold">Version</th>
                                 <th class="px-4 py-2 text-left font-semibold">Description</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                        <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
                             ${pkgs.map(p => `
-                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-800">
+                                <tr class="hover:bg-stone-50 dark:hover:bg-stone-800">
                                     <td class="px-4 py-2 font-mono font-medium">${p.name}</td>
-                                    <td class="px-4 py-2 font-mono text-gray-500">${p.version || '-'}</td>
-                                    <td class="px-4 py-2 text-gray-600 dark:text-gray-400">${p.description || '-'}</td>
+                                    <td class="px-4 py-2 font-mono text-stone-500">${p.version || '-'}</td>
+                                    <td class="px-4 py-2 text-stone-600 dark:text-stone-400">${p.description || '-'}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
