@@ -129,8 +129,8 @@
 # 패키지 목록 확인
 ./bintools ls`,
 
-            rpmtools: (ver) => `# 전체 설치
-sudo ./rpmtools install ${ver} --all
+            rpmtools: (ver) => `# 여러 패키지 설치
+sudo ./rpmtools install ${ver} git snapd
 
 # 특정 패키지 설치
 sudo ./rpmtools install ${ver} git
@@ -138,8 +138,8 @@ sudo ./rpmtools install ${ver} git
 # 패키지 목록
 ./rpmtools ls`,
 
-            debtools: (ver) => `# 전체 설치
-sudo ./debtools install ${ver} --all
+            debtools: (ver) => `# 여러 패키지 설치
+sudo ./debtools install ${ver} git rsync
 
 # 특정 패키지 설치
 sudo ./debtools install ${ver} git
