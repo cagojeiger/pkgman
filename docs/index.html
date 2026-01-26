@@ -186,7 +186,7 @@
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
-                const osLabel = tool.name === 'rpmtools' ? 'RHEL 호환' : 'Ubuntu';
+                const osLabel = tool.name === 'rpmtools' ? 'RHEL/Rocky' : 'Ubuntu';
                 version = `${osLabel} ${os}`;
                 url = tool.os_versions[os].download_url;
                 pkgCount = tool.os_versions[os].packages.length;
