@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-01-25T15:57:19.604355+00:00",
+  "generated_at": "2026-01-26T10:11:24.898695+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
       "name": "bintools",
       "description": "Go 바이너리 패키지 관리자",
       "version": "20260125-1217",
-      "download_url": "https://files.project-jelly.io/packages/bintools/20260125-1217/bintools",
+      "download_url": "https://files.project-jelly.io/packages/bintools/20260125-1217/bintools-20260125-1217",
       "packages": [
         {
           "name": "argocd",
@@ -76,43 +76,11 @@
         }
       ]
     },
-    "rpmtools": {
-      "name": "rpmtools",
-      "description": "RPM 패키지 번들러",
-      "os_versions": {
-        "9.2": {
-          "build": "20260125-1218",
-          "download_url": "https://files.project-jelly.io/packages/rpmtools/9.2/20260125-1218/rpmtools-bundle",
-          "packages": [
-            {
-              "name": "fio",
-              "version": "3.35",
-              "description": "Flexible I/O Tester for storage benchmarking"
-            },
-            {
-              "name": "git",
-              "version": "2.47.3",
-              "description": "Distributed version control system"
-            },
-            {
-              "name": "rsync",
-              "version": "3.2.5",
-              "description": "Fast incremental file transfer utility"
-            },
-            {
-              "name": "snapd",
-              "version": "2.72",
-              "description": "Universal Linux package manager (Snap packages support)"
-            }
-          ]
-        }
-      }
-    },
     "snaptools": {
       "name": "snaptools",
       "description": "Snap 패키지 번들러",
       "version": "20260125-1430",
-      "download_url": "https://files.project-jelly.io/packages/snaptools/20260125-1430/snaptools-bundle",
+      "download_url": "https://files.project-jelly.io/packages/snaptools/20260125-1430/snaptools-20260125-1430",
       "packages": [
         {
           "name": "core20",
@@ -163,6 +131,124 @@
           "description": "Snap package manager daemon"
         }
       ]
+    },
+    "rpmtools": {
+      "name": "rpmtools",
+      "description": "RPM 패키지 번들러",
+      "os_versions": {
+        "10": {
+          "build": "20260126-0924",
+          "download_url": "https://files.project-jelly.io/packages/rpmtools/10/20260126-0924/rpmtools-10-20260126-0924",
+          "packages": [
+            {
+              "name": "fio",
+              "version": "N/A",
+              "description": "Flexible I/O Tester for storage benchmarking"
+            },
+            {
+              "name": "git",
+              "version": "N/A",
+              "description": "Distributed version control system"
+            },
+            {
+              "name": "iproute",
+              "version": "N/A",
+              "description": "Network management tools (ip, ss, bridge)"
+            },
+            {
+              "name": "lsof",
+              "version": "N/A",
+              "description": "List open files and network connections"
+            },
+            {
+              "name": "procps-ng",
+              "version": "N/A",
+              "description": "Process monitoring tools (top, ps, vmstat, free)"
+            },
+            {
+              "name": "rsync",
+              "version": "N/A",
+              "description": "Fast incremental file transfer utility"
+            },
+            {
+              "name": "snapd",
+              "version": "N/A",
+              "description": "Universal Linux package manager (Snap packages support)"
+            },
+            {
+              "name": "strace",
+              "version": "N/A",
+              "description": "System call tracer for debugging"
+            },
+            {
+              "name": "sysstat",
+              "version": "N/A",
+              "description": "System performance tools (iostat, sar, pidstat)"
+            },
+            {
+              "name": "tcpdump",
+              "version": "N/A",
+              "description": "Network packet capture and analyzer"
+            }
+          ]
+        },
+        "9": {
+          "build": "20260126-0926",
+          "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-0926/rpmtools-9-20260126-0926",
+          "packages": [
+            {
+              "name": "fio",
+              "version": "3.35",
+              "description": "Flexible I/O Tester for storage benchmarking"
+            },
+            {
+              "name": "git",
+              "version": "2.47.3",
+              "description": "Distributed version control system"
+            },
+            {
+              "name": "iproute",
+              "version": "6.14.0",
+              "description": "Network management tools (ip, ss, bridge)"
+            },
+            {
+              "name": "lsof",
+              "version": "4.94.0",
+              "description": "List open files and network connections"
+            },
+            {
+              "name": "procps-ng",
+              "version": "3.3.17",
+              "description": "Process monitoring tools (top, ps, vmstat, free)"
+            },
+            {
+              "name": "rsync",
+              "version": "3.2.5",
+              "description": "Fast incremental file transfer utility"
+            },
+            {
+              "name": "snapd",
+              "version": "2.72",
+              "description": "Universal Linux package manager (Snap packages support)"
+            },
+            {
+              "name": "strace",
+              "version": "6.12",
+              "description": "System call tracer for debugging"
+            },
+            {
+              "name": "sysstat",
+              "version": "12.5.4",
+              "description": "System performance tools (iostat, sar, pidstat)"
+            },
+            {
+              "name": "tcpdump",
+              "version": "4.99.0",
+              "description": "Network packet capture and analyzer"
+            }
+          ]
+        }
+      }
     }
   }
 }
