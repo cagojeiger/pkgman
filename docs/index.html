@@ -118,6 +118,41 @@
         const DATA_URL = 'data/packages.json';
         let packagesData = null;
 
+        const TOOL_USAGE = {
+            bintools: `# 모든 패키지 설치
+./bintools install --all
+
+# 특정 패키지 설치
+./bintools install kubectl helm
+
+# 패키지 목록 확인
+./bintools ls`,
+
+            rpmtools: (ver) => `# 전체 설치
+sudo ./rpmtools install ${ver} --all
+
+# 특정 패키지 설치
+sudo ./rpmtools install ${ver} git
+
+# 패키지 목록
+./rpmtools ls`,
+
+            debtools: (ver) => `# 전체 설치
+sudo ./debtools install ${ver} --all
+
+# 특정 패키지 설치
+sudo ./debtools install ${ver} git
+
+# 패키지 목록
+./debtools ls`,
+
+            snaptools: `# 특정 snap 설치
+sudo ./snaptools install microk8s
+
+# 패키지 목록
+./snaptools ls`,
+        };
+
         // Theme
         function initTheme() {
             if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -293,6 +328,9 @@ sudo ./${bundleName}</code></pre>
                             </div>
                     `;
 
+                    // Usage section
+                    html += renderUsageSection(name, os);
+
                     // SHA256 section
                     html += renderSha256Section(d.sha256, d.download_url);
 
@@ -320,6 +358,9 @@ sudo ./${bundleName}</code></pre>
                         <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
                     </div>
                 `;
+
+                // Usage section
+                html += renderUsageSection(name);
 
                 // SHA256 section
                 html += renderSha256Section(tool.sha256, tool.download_url);
@@ -398,6 +439,19 @@ sudo ./${bundleName}</code></pre>
                 <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                     <pre class="text-sm font-mono overflow-x-auto"><code>${verifyCmd}</code></pre>
                     <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="검증 명령어 복사">📋</button>
+                </div>
+            `;
+        }
+
+        function renderUsageSection(name, os) {
+            const usage = TOOL_USAGE[name];
+            if (!usage) return '';
+            const text = typeof usage === 'function' ? usage(os) : usage;
+            return `
+                <h2 class="text-base font-semibold mb-2">📖 사용법</h2>
+                <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                    <pre class="text-sm font-mono overflow-x-auto"><code>${text}</code></pre>
+                    <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="사용법 복사">📋</button>
                 </div>
             `;
         }
