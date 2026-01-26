@@ -186,7 +186,7 @@
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
-                const osLabel = tool.name === 'rpmtools' ? 'Rocky' : 'Ubuntu';
+                const osLabel = tool.name === 'rpmtools' ? 'RHEL 호환' : 'Ubuntu';
                 version = `${osLabel} ${os}`;
                 url = tool.os_versions[os].download_url;
                 pkgCount = tool.os_versions[os].packages.length;
@@ -249,7 +249,7 @@
             const tool = packagesData.tools[name];
             const content = document.getElementById('detail-content');
             const isOsVersioned = !!tool.os_versions;
-            const osLabel = name === 'rpmtools' ? 'Rocky' : 'Ubuntu';
+            const osLabel = name === 'rpmtools' ? 'RHEL 호환' : 'Ubuntu';
 
             let html = `
                 <div class="flex items-center gap-3 mb-1">
