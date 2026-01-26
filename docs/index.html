@@ -194,6 +194,15 @@ sudo ./snaptools install microk8s
             });
         }
 
+        // Get builds array (handles both legacy single-build and new multi-build JSON)
+        function getBuilds(tool, os) {
+            if (os) {
+                const osData = tool.os_versions[os];
+                return osData.builds || [osData];
+            }
+            return tool.builds || [tool];
+        }
+
         // Render Cards
         function renderCards(data) {
             const container = document.getElementById('cards-container');
@@ -217,21 +226,28 @@ sudo ./snaptools install microk8s
             card.setAttribute('tabindex', '0');
 
             const isOsVersioned = !!tool.os_versions;
-            let version, url, pkgCount;
+            let version, build, url, pkgCount;
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
                 const osLabel = tool.name === 'rpmtools' ? 'Rocky/RHEL' : 'Ubuntu';
-                version = `${osLabel} ${os} · ${tool.os_versions[os].build}`;
-                url = tool.os_versions[os].download_url;
-                pkgCount = tool.os_versions[os].packages.length;
+                const builds = getBuilds(tool, os);
+                const latest = builds[0];
+                version = `${osLabel} ${os}`;
+                build = latest.build;
+                url = latest.download_url;
+                pkgCount = latest.packages.length;
             } else {
-                version = tool.version;
-                url = tool.download_url;
-                pkgCount = tool.packages.length;
+                const builds = getBuilds(tool);
+                const latest = builds[0];
+                version = latest.version;
+                build = null;
+                url = latest.download_url;
+                pkgCount = latest.packages.length;
             }
 
-            const pkgs = isOsVersioned ? tool.os_versions[Object.keys(tool.os_versions).sort().reverse()[0]].packages : tool.packages;
+            const latestOs = isOsVersioned ? Object.keys(tool.os_versions).sort().reverse()[0] : null;
+            const pkgs = isOsVersioned ? getBuilds(tool, latestOs)[0].packages : getBuilds(tool)[0].packages;
             const summary = pkgs.slice(0, 3).map(p => p.name).join(', ');
             const remaining = Math.max(0, pkgCount - 3);
 
@@ -241,7 +257,10 @@ sudo ./snaptools install microk8s
                         <span class="text-2xl">📦</span>
                         <span class="text-lg font-semibold">${tool.name}</span>
                     </div>
-                    <span class="text-sm text-gray-500 dark:text-gray-400">${version}</span>
+                    <div class="text-right text-sm text-gray-500 dark:text-gray-400">
+                        <div>${version}</div>
+                        <div class="text-xs">${build || '&nbsp;'}</div>
+                    </div>
                 </div>
                 <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${tool.description} - ${summary} 외 ${remaining}개</p>
                 <div class="flex items-center gap-2 mb-3 relative code-scroll-container">
@@ -305,20 +324,34 @@ sudo ./snaptools install microk8s
                 }
 
                 versions.forEach((os, i) => {
-                    const d = tool.os_versions[os];
+                    const builds = getBuilds(tool, os);
                     const singleVersion = versions.length === 1;
                     const bundleName = `${tool.name}-bundle`;
 
-                    html += `
-                        <div class="os-content ${i > 0 ? 'hidden' : ''}" data-os="${os}">
-                            <p class="text-sm text-gray-500 mb-4">${singleVersion ? `${osLabel} ${os} · ` : ''}Build: ${d.build}</p>
-                    `;
+                    html += `<div class="os-content ${i > 0 ? 'hidden' : ''}" data-os="${os}">`;
 
-                    // Meta badges
-                    html += renderMetaBadges(d.packages.length, d.file_size, d.arch);
+                    // Build dropdown (only if multiple builds)
+                    if (builds.length > 1) {
+                        html += `
+                            <div class="mb-4 flex items-center gap-2">
+                                <span class="text-sm text-gray-500">${singleVersion ? `${osLabel} ${os} · ` : ''}Build:</span>
+                                <select class="build-select text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" data-os="${os}">
+                                    ${builds.map((b, bi) => `<option value="${bi}">${b.build}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    } else {
+                        html += `<p class="text-sm text-gray-500 mb-4">${singleVersion ? `${osLabel} ${os} · ` : ''}Build: ${builds[0].build}</p>`;
+                    }
 
-                    // Download section
-                    html += `
+                    builds.forEach((d, bi) => {
+                        html += `<div class="build-content ${bi > 0 ? 'hidden' : ''}" data-os="${os}" data-build="${bi}">`;
+
+                        // Meta badges
+                        html += renderMetaBadges(d.packages.length, d.file_size, d.arch);
+
+                        // Download section
+                        html += `
                             <h2 class="text-base font-semibold mb-2">📥 다운로드</h2>
                             <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
                                 <pre class="text-sm font-mono overflow-x-auto"><code>curl -LO "${d.download_url}"
@@ -326,49 +359,69 @@ chmod +x ${bundleName}
 sudo ./${bundleName}</code></pre>
                                 <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
                             </div>
+                        `;
+
+                        // Usage section
+                        html += renderUsageSection(name, os);
+
+                        // SHA256 section
+                        html += renderSha256Section(d.sha256, d.download_url);
+
+                        html += `
+                            <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${d.packages.length})</h2>
+                            ${renderTable(d.packages)}
+                        </div>`;
+                    });
+
+                    html += `</div>`;
+                });
+            } else {
+                const builds = getBuilds(tool);
+
+                // Build dropdown (only if multiple builds)
+                if (builds.length > 1) {
+                    html += `
+                        <div class="mb-4 flex items-center gap-2">
+                            <span class="text-sm text-gray-500">Build:</span>
+                            <select class="build-select text-sm border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 rounded-lg px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                ${builds.map((b, bi) => `<option value="${bi}">${b.version}</option>`).join('')}
+                            </select>
+                        </div>
+                    `;
+                } else {
+                    html += `<p class="text-sm text-gray-500 mb-4">Build: ${builds[0].version}</p>`;
+                }
+
+                builds.forEach((d, bi) => {
+                    const cmd = tool.name === 'bintools'
+                        ? `curl -LO "${d.download_url}"\nchmod +x bintools\n./bintools install kubectl helm`
+                        : `curl -LO "${d.download_url}"\nchmod +x ${tool.name}-bundle\nsudo ./${tool.name}-bundle`;
+
+                    html += `<div class="build-content ${bi > 0 ? 'hidden' : ''}" data-build="${bi}">`;
+
+                    // Meta badges
+                    html += renderMetaBadges(d.packages.length, d.file_size, d.arch);
+
+                    // Download section
+                    html += `
+                        <h2 class="text-base font-semibold mb-2">📥 다운로드</h2>
+                        <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
+                            <pre class="text-sm font-mono overflow-x-auto"><code>${cmd}</code></pre>
+                            <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
+                        </div>
                     `;
 
                     // Usage section
-                    html += renderUsageSection(name, os);
+                    html += renderUsageSection(name);
 
                     // SHA256 section
                     html += renderSha256Section(d.sha256, d.download_url);
 
                     html += `
-                            <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${d.packages.length})</h2>
-                            ${renderTable(d.packages)}
-                        </div>
-                    `;
+                        <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${d.packages.length})</h2>
+                        ${renderTable(d.packages)}
+                    </div>`;
                 });
-            } else {
-                const cmd = tool.name === 'bintools'
-                    ? `curl -LO "${tool.download_url}"\nchmod +x bintools\n./bintools install kubectl helm`
-                    : `curl -LO "${tool.download_url}"\nchmod +x ${tool.name}-bundle\nsudo ./${tool.name}-bundle`;
-
-                html += `<p class="text-sm text-gray-500 mb-4">Build: ${tool.version}</p>`;
-
-                // Meta badges
-                html += renderMetaBadges(tool.packages.length, tool.file_size, tool.arch);
-
-                // Download section
-                html += `
-                    <h2 class="text-base font-semibold mb-2">📥 다운로드</h2>
-                    <div class="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4 relative code-scroll-container">
-                        <pre class="text-sm font-mono overflow-x-auto"><code>${cmd}</code></pre>
-                        <button class="copy-cmd-btn absolute top-2 right-2 p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" aria-label="복사">📋</button>
-                    </div>
-                `;
-
-                // Usage section
-                html += renderUsageSection(name);
-
-                // SHA256 section
-                html += renderSha256Section(tool.sha256, tool.download_url);
-
-                html += `
-                    <h2 class="text-lg font-semibold mb-3">📋 패키지 목록 (${tool.packages.length})</h2>
-                    ${renderTable(tool.packages)}
-                `;
             }
 
             content.innerHTML = html;
@@ -398,7 +451,32 @@ sudo ./${bundleName}</code></pre>
                     tab.classList.add('bg-indigo-600', 'text-white', 'border-indigo-600');
                     tab.classList.remove('border-gray-300', 'dark:border-gray-600');
                     content.querySelectorAll('.os-content').forEach(c => c.classList.add('hidden'));
-                    content.querySelector(`.os-content[data-os="${tab.dataset.os}"]`).classList.remove('hidden');
+                    const osContent = content.querySelector(`.os-content[data-os="${tab.dataset.os}"]`);
+                    osContent.classList.remove('hidden');
+                    // Reset build dropdown to first build when switching OS tab
+                    const buildSelect = osContent.querySelector('.build-select');
+                    if (buildSelect) {
+                        buildSelect.value = '0';
+                        osContent.querySelectorAll('.build-content').forEach(c => c.classList.add('hidden'));
+                        const first = osContent.querySelector('.build-content[data-build="0"]');
+                        if (first) first.classList.remove('hidden');
+                    }
+                });
+            });
+
+            // Build select dropdowns
+            content.querySelectorAll('.build-select').forEach(select => {
+                select.addEventListener('change', () => {
+                    const os = select.dataset.os || '';
+                    const buildIdx = select.value;
+                    const selector = os
+                        ? `.build-content[data-os="${os}"]`
+                        : '.build-content';
+                    content.querySelectorAll(selector).forEach(c => c.classList.add('hidden'));
+                    const target = os
+                        ? `.build-content[data-os="${os}"][data-build="${buildIdx}"]`
+                        : `.build-content[data-build="${buildIdx}"]`;
+                    content.querySelector(target).classList.remove('hidden');
                 });
             });
 
