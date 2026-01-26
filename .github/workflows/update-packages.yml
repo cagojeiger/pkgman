@@ -1,0 +1,54 @@
+name: Update packages.json
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  update-packages:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::881933935409:role/system/github-actions-s3-upload
+          aws-region: us-east-2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Aggregate packages from S3
+        run: python scripts/aggregate_packages.py
+        env:
+          S3_BUCKET: jelly-prd-cdn-static
+          S3_PREFIX: packages
+          CDN_BASE: https://files.project-jelly.io/packages
+          OUTPUT_FILE: docs/data/packages.json
+
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet docs/data/packages.json; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/update-packages
+          delete-branch: true
+          title: "chore: update packages.json"
+          body: |
+            Automated update of `docs/data/packages.json` from S3 metadata.
+          commit-message: "chore: update packages.json from S3 metadata"
+          add-paths: docs/data/packages.json
