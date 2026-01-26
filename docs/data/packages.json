@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-01-26T11:19:28.937009+00:00",
+  "generated_at": "2026-01-26T12:20:09.819019+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
       "name": "bintools",
       "description": "Go 바이너리 패키지 관리자",
-      "version": "20260126-1047",
-      "download_url": "https://files.project-jelly.io/packages/bintools/20260126-1047/bintools-20260126-1047",
+      "version": "20260126-1139",
+      "download_url": "https://files.project-jelly.io/packages/bintools/20260126-1139/bintools-20260126-1139",
       "packages": [
         {
           "name": "argocd",
@@ -75,15 +75,15 @@
           "homepage": "https://mikefarah.gitbook.io/yq"
         }
       ],
-      "sha256": "0413c10e3d2ddc9abbfecb7ac677bb625af04061d0e3bc0399e65fed09978433",
-      "file_size": 426932169,
-      "arch": "amd64"
+      "sha256": "29d9f5e88f641ad65785a626c1b12fc805d1320fe24b23cddb8c935eb406ae78",
+      "file_size": 426930082,
+      "arch": "amd64,arm64"
     },
     "snaptools": {
       "name": "snaptools",
       "description": "Snap 패키지 번들러",
-      "version": "20260126-1054",
-      "download_url": "https://files.project-jelly.io/packages/snaptools/20260126-1054/snaptools-20260126-1054",
+      "version": "20260126-1146",
+      "download_url": "https://files.project-jelly.io/packages/snaptools/20260126-1146/snaptools-20260126-1146",
       "packages": [
         {
           "name": "core20",
@@ -134,17 +134,76 @@
           "description": "Snap package manager daemon"
         }
       ],
-      "sha256": "0253bde15ac3c5121a8e17e583e9f255ed53f5b8161055d9bf05ff16523daeb2",
-      "file_size": 2022887418,
-      "arch": "amd64"
+      "sha256": "271ad3ff0849e2f41d794059ea39869f14fc7235b81eeaf850f2eaa78c652717",
+      "file_size": 2022887302,
+      "arch": "amd64,arm64"
     },
     "rpmtools": {
       "name": "rpmtools",
       "description": "RPM 패키지 번들러",
       "os_versions": {
+        "8": {
+          "build": "20260126-1150",
+          "download_url": "https://files.project-jelly.io/packages/rpmtools/8/20260126-1150/rpmtools-8-20260126-1150",
+          "packages": [
+            {
+              "name": "fio",
+              "version": "3.19",
+              "description": "Flexible I/O Tester for storage benchmarking"
+            },
+            {
+              "name": "git",
+              "version": "2.43.7",
+              "description": "Distributed version control system"
+            },
+            {
+              "name": "iproute",
+              "version": "6.2.0",
+              "description": "Network management tools (ip, ss, bridge)"
+            },
+            {
+              "name": "lsof",
+              "version": "4.93.2",
+              "description": "List open files and network connections"
+            },
+            {
+              "name": "procps-ng",
+              "version": "3.3.15",
+              "description": "Process monitoring tools (top, ps, vmstat, free)"
+            },
+            {
+              "name": "rsync",
+              "version": "3.1.3",
+              "description": "Fast incremental file transfer utility"
+            },
+            {
+              "name": "snapd",
+              "version": "2.72",
+              "description": "Universal Linux package manager (Snap packages support)"
+            },
+            {
+              "name": "strace",
+              "version": "5.18",
+              "description": "System call tracer for debugging"
+            },
+            {
+              "name": "sysstat",
+              "version": "11.7.3",
+              "description": "System performance tools (iostat, sar, pidstat)"
+            },
+            {
+              "name": "tcpdump",
+              "version": "4.9.3",
+              "description": "Network packet capture and analyzer"
+            }
+          ],
+          "sha256": "5b930e817c3326480a540938d905e6f9111cdd88de436a043c963b20bef041c3",
+          "file_size": 1823728259,
+          "arch": "x86_64,aarch64"
+        },
         "9": {
-          "build": "20260126-1048",
-          "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1048/rpmtools-9-20260126-1048",
+          "build": "20260126-1140",
+          "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1140/rpmtools-9-20260126-1140",
           "packages": [
             {
               "name": "fio",
@@ -197,9 +256,9 @@
               "description": "Network packet capture and analyzer"
             }
           ],
-          "sha256": "ab92adeb14738a0a8b4b49106072dcdde9204fb537abf9a2c2fbbfce1349889c",
-          "file_size": 267550666,
-          "arch": "x86_64"
+          "sha256": "643590fe41d5bd35f0e1d547712b3dfa0baf5b6934e647ee07b2be5933a4b5b0",
+          "file_size": 267557508,
+          "arch": "x86_64,aarch64"
         }
       }
     },
@@ -208,8 +267,8 @@
       "description": "DEB 패키지 번들러",
       "os_versions": {
         "22.04": {
-          "build": "20260126-1048",
-          "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260126-1048/debtools-22.04-20260126-1048",
+          "build": "20260126-1140",
+          "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260126-1140/debtools-22.04-20260126-1140",
           "packages": [
             {
               "name": "fio",
@@ -262,13 +321,13 @@
               "description": "Network packet capture and analyzer"
             }
           ],
-          "sha256": "98ed5302bcb5212e6271bb6f582ab23f8a79062435b0b8e2bdd93c4626f091e3",
-          "file_size": 200453977,
-          "arch": "amd64"
+          "sha256": "4eddd1f2bca2972001f4f883e66d19c33f91a32d95b206790c34348000a3c01a",
+          "file_size": 200453918,
+          "arch": "amd64,arm64"
         },
         "24.04": {
-          "build": "20260126-1103",
-          "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260126-1103/debtools-24.04-20260126-1103",
+          "build": "20260126-1155",
+          "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260126-1155/debtools-24.04-20260126-1155",
           "packages": [
             {
               "name": "fio",
@@ -321,9 +380,9 @@
               "description": "Network packet capture and analyzer"
             }
           ],
-          "sha256": "ff34954b08e4c2da58189a5c6fb30836741474e048b84955cc122f9bd3da2f2b",
-          "file_size": 226459566,
-          "arch": "amd64"
+          "sha256": "ece8d2cc11ad56013ccb85130560bc87b910d77281b22554eb9193d4d8adedb0",
+          "file_size": 226459559,
+          "arch": "amd64,arm64"
         }
       }
     }
