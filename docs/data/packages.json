@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-26T12:20:09.819019+00:00",
+  "generated_at": "2026-01-27T05:51:55.488019+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -82,8 +82,8 @@
     "snaptools": {
       "name": "snaptools",
       "description": "Snap 패키지 번들러",
-      "version": "20260126-1146",
-      "download_url": "https://files.project-jelly.io/packages/snaptools/20260126-1146/snaptools-20260126-1146",
+      "version": "20260127-0525",
+      "download_url": "https://files.project-jelly.io/packages/snaptools/20260127-0525/snaptools-20260127-0525",
       "packages": [
         {
           "name": "core20",
@@ -134,8 +134,8 @@
           "description": "Snap package manager daemon"
         }
       ],
-      "sha256": "271ad3ff0849e2f41d794059ea39869f14fc7235b81eeaf850f2eaa78c652717",
-      "file_size": 2022887302,
+      "sha256": "fbdefad611e9fe6c63f0d3ff3c8fbcb3f5849b3055511cd813fc67ac6fd1d352",
+      "file_size": 2022887245,
       "arch": "amd64,arm64"
     },
     "rpmtools": {
