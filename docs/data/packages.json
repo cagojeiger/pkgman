@@ -1,264 +1,337 @@
 {
-  "generated_at": "2026-01-27T06:13:49.756632+00:00",
+  "generated_at": "2026-01-27T06:47:44.175291+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
       "name": "bintools",
       "description": "Go 바이너리 패키지 관리자",
-      "version": "20260126-1139",
-      "download_url": "https://files.project-jelly.io/packages/bintools/20260126-1139/bintools-20260126-1139",
-      "packages": [
+      "builds": [
         {
-          "name": "argocd",
-          "version": "v3.2.6",
-          "description": "Declarative GitOps CD for Kubernetes",
-          "homepage": "https://argo-cd.readthedocs.io"
-        },
-        {
-          "name": "gh",
-          "version": "v2.86.0",
-          "description": "GitHub CLI - GitHub on the command line",
-          "homepage": "https://cli.github.com"
-        },
-        {
-          "name": "gix",
-          "version": "v0.50.0",
-          "description": "A pure Rust implementation of Git with no dependencies",
-          "homepage": "https://github.com/GitoxideLabs/gitoxide"
-        },
-        {
-          "name": "helm",
-          "version": "v4.1.0",
-          "description": "Kubernetes package manager",
-          "homepage": "https://helm.sh"
-        },
-        {
-          "name": "jq",
-          "version": "jq-1.8.1",
-          "description": "Command-line JSON processor",
-          "homepage": "https://jqlang.github.io/jq/"
-        },
-        {
-          "name": "k9s",
-          "version": "v0.50.18",
-          "description": "Kubernetes CLI to manage your clusters in style",
-          "homepage": "https://k9scli.io"
-        },
-        {
-          "name": "kubectl",
-          "version": "v1.35.0",
-          "description": "Kubernetes command-line tool",
-          "homepage": "https://kubernetes.io"
-        },
-        {
-          "name": "lazygit",
-          "version": "v0.58.1",
-          "description": "A simple terminal UI for git commands",
-          "homepage": "https://github.com/jesseduffield/lazygit"
-        },
-        {
-          "name": "mc",
-          "version": "2026.01.26",
-          "description": "MinIO Client - replacement for ls, cp, mkdir, diff and rsync for cloud storage",
-          "homepage": "https://min.io/docs/minio/linux/reference/minio-mc.html"
-        },
-        {
-          "name": "skopeo",
-          "version": "v1.21.0",
-          "description": "Work with remote images registries - retrieving information, images, signing content",
-          "homepage": "https://github.com/containers/skopeo"
-        },
-        {
-          "name": "yq",
-          "version": "v4.50.1",
-          "description": "Portable command-line YAML processor",
-          "homepage": "https://mikefarah.gitbook.io/yq"
+          "version": "20260126-1139",
+          "download_url": "https://files.project-jelly.io/packages/bintools/20260126-1139/bintools-20260126-1139",
+          "packages": [
+            {
+              "name": "argocd",
+              "version": "v3.2.6",
+              "description": "Declarative GitOps CD for Kubernetes",
+              "homepage": "https://argo-cd.readthedocs.io"
+            },
+            {
+              "name": "gh",
+              "version": "v2.86.0",
+              "description": "GitHub CLI - GitHub on the command line",
+              "homepage": "https://cli.github.com"
+            },
+            {
+              "name": "gix",
+              "version": "v0.50.0",
+              "description": "A pure Rust implementation of Git with no dependencies",
+              "homepage": "https://github.com/GitoxideLabs/gitoxide"
+            },
+            {
+              "name": "helm",
+              "version": "v4.1.0",
+              "description": "Kubernetes package manager",
+              "homepage": "https://helm.sh"
+            },
+            {
+              "name": "jq",
+              "version": "jq-1.8.1",
+              "description": "Command-line JSON processor",
+              "homepage": "https://jqlang.github.io/jq/"
+            },
+            {
+              "name": "k9s",
+              "version": "v0.50.18",
+              "description": "Kubernetes CLI to manage your clusters in style",
+              "homepage": "https://k9scli.io"
+            },
+            {
+              "name": "kubectl",
+              "version": "v1.35.0",
+              "description": "Kubernetes command-line tool",
+              "homepage": "https://kubernetes.io"
+            },
+            {
+              "name": "lazygit",
+              "version": "v0.58.1",
+              "description": "A simple terminal UI for git commands",
+              "homepage": "https://github.com/jesseduffield/lazygit"
+            },
+            {
+              "name": "mc",
+              "version": "2026.01.26",
+              "description": "MinIO Client - replacement for ls, cp, mkdir, diff and rsync for cloud storage",
+              "homepage": "https://min.io/docs/minio/linux/reference/minio-mc.html"
+            },
+            {
+              "name": "skopeo",
+              "version": "v1.21.0",
+              "description": "Work with remote images registries - retrieving information, images, signing content",
+              "homepage": "https://github.com/containers/skopeo"
+            },
+            {
+              "name": "yq",
+              "version": "v4.50.1",
+              "description": "Portable command-line YAML processor",
+              "homepage": "https://mikefarah.gitbook.io/yq"
+            }
+          ],
+          "sha256": "29d9f5e88f641ad65785a626c1b12fc805d1320fe24b23cddb8c935eb406ae78",
+          "file_size": 426930082,
+          "arch": "amd64,arm64"
         }
-      ],
-      "sha256": "29d9f5e88f641ad65785a626c1b12fc805d1320fe24b23cddb8c935eb406ae78",
-      "file_size": 426930082,
-      "arch": "amd64,arm64"
+      ]
     },
     "snaptools": {
       "name": "snaptools",
       "description": "Snap 패키지 번들러",
-      "version": "20260127-0525",
-      "download_url": "https://files.project-jelly.io/packages/snaptools/20260127-0525/snaptools-20260127-0525",
-      "packages": [
+      "builds": [
         {
-          "name": "core20",
-          "version": "20251031",
-          "channel": "stable",
-          "description": "Runtime environment based on Ubuntu 20.04"
+          "version": "20260127-0525",
+          "download_url": "https://files.project-jelly.io/packages/snaptools/20260127-0525/snaptools-20260127-0525",
+          "packages": [
+            {
+              "name": "core20",
+              "version": "20251031",
+              "channel": "stable",
+              "description": "Runtime environment based on Ubuntu 20.04"
+            },
+            {
+              "name": "core22",
+              "version": "20251125",
+              "channel": "stable",
+              "description": "Runtime environment based on Ubuntu 22.04"
+            },
+            {
+              "name": "microk8s-1.31",
+              "version": "v1.31.14",
+              "channel": "1.31/stable",
+              "description": "Lightweight Kubernetes 1.31"
+            },
+            {
+              "name": "microk8s-1.32",
+              "version": "v1.32.9",
+              "channel": "1.32/stable",
+              "description": "Lightweight Kubernetes 1.32"
+            },
+            {
+              "name": "microk8s-1.33",
+              "version": "v1.33.7",
+              "channel": "1.33/stable",
+              "description": "Lightweight Kubernetes 1.33"
+            },
+            {
+              "name": "microk8s-1.34",
+              "version": "v1.34.3",
+              "channel": "1.34/stable",
+              "description": "Lightweight Kubernetes 1.34"
+            },
+            {
+              "name": "microk8s-1.35",
+              "version": "v1.35.0",
+              "channel": "1.35/stable",
+              "description": "Lightweight Kubernetes 1.35"
+            },
+            {
+              "name": "snapd",
+              "version": "2.73",
+              "channel": "stable",
+              "description": "Snap package manager daemon"
+            }
+          ],
+          "sha256": "fbdefad611e9fe6c63f0d3ff3c8fbcb3f5849b3055511cd813fc67ac6fd1d352",
+          "file_size": 2022887245,
+          "arch": "amd64,arm64"
         },
         {
-          "name": "core22",
-          "version": "20251125",
-          "channel": "stable",
-          "description": "Runtime environment based on Ubuntu 22.04"
-        },
-        {
-          "name": "microk8s-1.31",
-          "version": "v1.31.14",
-          "channel": "1.31/stable",
-          "description": "Lightweight Kubernetes 1.31"
-        },
-        {
-          "name": "microk8s-1.32",
-          "version": "v1.32.9",
-          "channel": "1.32/stable",
-          "description": "Lightweight Kubernetes 1.32"
-        },
-        {
-          "name": "microk8s-1.33",
-          "version": "v1.33.7",
-          "channel": "1.33/stable",
-          "description": "Lightweight Kubernetes 1.33"
-        },
-        {
-          "name": "microk8s-1.34",
-          "version": "v1.34.3",
-          "channel": "1.34/stable",
-          "description": "Lightweight Kubernetes 1.34"
-        },
-        {
-          "name": "microk8s-1.35",
-          "version": "v1.35.0",
-          "channel": "1.35/stable",
-          "description": "Lightweight Kubernetes 1.35"
-        },
-        {
-          "name": "snapd",
-          "version": "2.73",
-          "channel": "stable",
-          "description": "Snap package manager daemon"
+          "version": "20260126-1146",
+          "download_url": "https://files.project-jelly.io/packages/snaptools/20260126-1146/snaptools-20260126-1146",
+          "packages": [
+            {
+              "name": "core20",
+              "version": "20251031",
+              "channel": "stable",
+              "description": "Runtime environment based on Ubuntu 20.04"
+            },
+            {
+              "name": "core22",
+              "version": "20251125",
+              "channel": "stable",
+              "description": "Runtime environment based on Ubuntu 22.04"
+            },
+            {
+              "name": "microk8s-1.31",
+              "version": "v1.31.14",
+              "channel": "1.31/stable",
+              "description": "Lightweight Kubernetes 1.31"
+            },
+            {
+              "name": "microk8s-1.32",
+              "version": "v1.32.9",
+              "channel": "1.32/stable",
+              "description": "Lightweight Kubernetes 1.32"
+            },
+            {
+              "name": "microk8s-1.33",
+              "version": "v1.33.7",
+              "channel": "1.33/stable",
+              "description": "Lightweight Kubernetes 1.33"
+            },
+            {
+              "name": "microk8s-1.34",
+              "version": "v1.34.3",
+              "channel": "1.34/stable",
+              "description": "Lightweight Kubernetes 1.34"
+            },
+            {
+              "name": "microk8s-1.35",
+              "version": "v1.35.0",
+              "channel": "1.35/stable",
+              "description": "Lightweight Kubernetes 1.35"
+            },
+            {
+              "name": "snapd",
+              "version": "2.73",
+              "channel": "stable",
+              "description": "Snap package manager daemon"
+            }
+          ],
+          "sha256": "271ad3ff0849e2f41d794059ea39869f14fc7235b81eeaf850f2eaa78c652717",
+          "file_size": 2022887302,
+          "arch": "amd64,arm64"
         }
-      ],
-      "sha256": "fbdefad611e9fe6c63f0d3ff3c8fbcb3f5849b3055511cd813fc67ac6fd1d352",
-      "file_size": 2022887245,
-      "arch": "amd64,arm64"
+      ]
     },
     "rpmtools": {
       "name": "rpmtools",
       "description": "RPM 패키지 번들러",
       "os_versions": {
         "8": {
-          "build": "20260126-1150",
-          "download_url": "https://files.project-jelly.io/packages/rpmtools/8/20260126-1150/rpmtools-8-20260126-1150",
-          "packages": [
+          "builds": [
             {
-              "name": "fio",
-              "version": "3.19",
-              "description": "Flexible I/O Tester for storage benchmarking"
-            },
-            {
-              "name": "git",
-              "version": "2.43.7",
-              "description": "Distributed version control system"
-            },
-            {
-              "name": "iproute",
-              "version": "6.2.0",
-              "description": "Network management tools (ip, ss, bridge)"
-            },
-            {
-              "name": "lsof",
-              "version": "4.93.2",
-              "description": "List open files and network connections"
-            },
-            {
-              "name": "procps-ng",
-              "version": "3.3.15",
-              "description": "Process monitoring tools (top, ps, vmstat, free)"
-            },
-            {
-              "name": "rsync",
-              "version": "3.1.3",
-              "description": "Fast incremental file transfer utility"
-            },
-            {
-              "name": "snapd",
-              "version": "2.72",
-              "description": "Universal Linux package manager (Snap packages support)"
-            },
-            {
-              "name": "strace",
-              "version": "5.18",
-              "description": "System call tracer for debugging"
-            },
-            {
-              "name": "sysstat",
-              "version": "11.7.3",
-              "description": "System performance tools (iostat, sar, pidstat)"
-            },
-            {
-              "name": "tcpdump",
-              "version": "4.9.3",
-              "description": "Network packet capture and analyzer"
+              "build": "20260126-1150",
+              "download_url": "https://files.project-jelly.io/packages/rpmtools/8/20260126-1150/rpmtools-8-20260126-1150",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.19",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "2.43.7",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute",
+                  "version": "6.2.0",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.93.2",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps-ng",
+                  "version": "3.3.15",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.1.3",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.72",
+                  "description": "Universal Linux package manager (Snap packages support)"
+                },
+                {
+                  "name": "strace",
+                  "version": "5.18",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "11.7.3",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.9.3",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "5b930e817c3326480a540938d905e6f9111cdd88de436a043c963b20bef041c3",
+              "file_size": 1823728259,
+              "arch": "x86_64,aarch64"
             }
-          ],
-          "sha256": "5b930e817c3326480a540938d905e6f9111cdd88de436a043c963b20bef041c3",
-          "file_size": 1823728259,
-          "arch": "x86_64,aarch64"
+          ]
         },
         "9": {
-          "build": "20260126-1140",
-          "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1140/rpmtools-9-20260126-1140",
-          "packages": [
+          "builds": [
             {
-              "name": "fio",
-              "version": "3.35",
-              "description": "Flexible I/O Tester for storage benchmarking"
-            },
-            {
-              "name": "git",
-              "version": "2.47.3",
-              "description": "Distributed version control system"
-            },
-            {
-              "name": "iproute",
-              "version": "6.14.0",
-              "description": "Network management tools (ip, ss, bridge)"
-            },
-            {
-              "name": "lsof",
-              "version": "4.94.0",
-              "description": "List open files and network connections"
-            },
-            {
-              "name": "procps-ng",
-              "version": "3.3.17",
-              "description": "Process monitoring tools (top, ps, vmstat, free)"
-            },
-            {
-              "name": "rsync",
-              "version": "3.2.5",
-              "description": "Fast incremental file transfer utility"
-            },
-            {
-              "name": "snapd",
-              "version": "2.72",
-              "description": "Universal Linux package manager (Snap packages support)"
-            },
-            {
-              "name": "strace",
-              "version": "6.12",
-              "description": "System call tracer for debugging"
-            },
-            {
-              "name": "sysstat",
-              "version": "12.5.4",
-              "description": "System performance tools (iostat, sar, pidstat)"
-            },
-            {
-              "name": "tcpdump",
-              "version": "4.99.0",
-              "description": "Network packet capture and analyzer"
+              "build": "20260126-1140",
+              "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1140/rpmtools-9-20260126-1140",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.35",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "2.47.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute",
+                  "version": "6.14.0",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.94.0",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps-ng",
+                  "version": "3.3.17",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.5",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.72",
+                  "description": "Universal Linux package manager (Snap packages support)"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.12",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.4",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.0",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "643590fe41d5bd35f0e1d547712b3dfa0baf5b6934e647ee07b2be5933a4b5b0",
+              "file_size": 267557508,
+              "arch": "x86_64,aarch64"
             }
-          ],
-          "sha256": "643590fe41d5bd35f0e1d547712b3dfa0baf5b6934e647ee07b2be5933a4b5b0",
-          "file_size": 267557508,
-          "arch": "x86_64,aarch64"
+          ]
         }
       }
     },
@@ -267,122 +340,130 @@
       "description": "DEB 패키지 번들러",
       "os_versions": {
         "22.04": {
-          "build": "20260126-1140",
-          "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260126-1140/debtools-22.04-20260126-1140",
-          "packages": [
+          "builds": [
             {
-              "name": "fio",
-              "version": "3.28-1",
-              "description": "Flexible I/O Tester for storage benchmarking"
-            },
-            {
-              "name": "git",
-              "version": "1%3a2.34.1-1ubuntu1.15",
-              "description": "Distributed version control system"
-            },
-            {
-              "name": "iproute2",
-              "version": "5.15.0-1ubuntu2",
-              "description": "Network management tools (ip, ss, bridge)"
-            },
-            {
-              "name": "lsof",
-              "version": "4.93.2+dfsg-1.1build2",
-              "description": "List open files and network connections"
-            },
-            {
-              "name": "procps",
-              "version": "2%3a3.3.17-6ubuntu2.1",
-              "description": "Process monitoring tools (top, ps, vmstat, free)"
-            },
-            {
-              "name": "rsync",
-              "version": "3.2.7-0ubuntu0.22.04.4",
-              "description": "Fast incremental file transfer utility"
-            },
-            {
-              "name": "snapd",
-              "version": "2.73+ubuntu22.04",
-              "description": "Snap package manager daemon"
-            },
-            {
-              "name": "strace",
-              "version": "5.16-0ubuntu3",
-              "description": "System call tracer for debugging"
-            },
-            {
-              "name": "sysstat",
-              "version": "12.5.2-2ubuntu0.2",
-              "description": "System performance tools (iostat, sar, pidstat)"
-            },
-            {
-              "name": "tcpdump",
-              "version": "4.99.1-3ubuntu0.2",
-              "description": "Network packet capture and analyzer"
+              "build": "20260126-1140",
+              "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260126-1140/debtools-22.04-20260126-1140",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.28-1",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "1%3a2.34.1-1ubuntu1.15",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute2",
+                  "version": "5.15.0-1ubuntu2",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.93.2+dfsg-1.1build2",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps",
+                  "version": "2%3a3.3.17-6ubuntu2.1",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.7-0ubuntu0.22.04.4",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.73+ubuntu22.04",
+                  "description": "Snap package manager daemon"
+                },
+                {
+                  "name": "strace",
+                  "version": "5.16-0ubuntu3",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.2-2ubuntu0.2",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.1-3ubuntu0.2",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "4eddd1f2bca2972001f4f883e66d19c33f91a32d95b206790c34348000a3c01a",
+              "file_size": 200453918,
+              "arch": "amd64,arm64"
             }
-          ],
-          "sha256": "4eddd1f2bca2972001f4f883e66d19c33f91a32d95b206790c34348000a3c01a",
-          "file_size": 200453918,
-          "arch": "amd64,arm64"
+          ]
         },
         "24.04": {
-          "build": "20260126-1155",
-          "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260126-1155/debtools-24.04-20260126-1155",
-          "packages": [
+          "builds": [
             {
-              "name": "fio",
-              "version": "3.36-1ubuntu0.1",
-              "description": "Flexible I/O Tester for storage benchmarking"
-            },
-            {
-              "name": "git",
-              "version": "1%3a2.43.0-1ubuntu7.3",
-              "description": "Distributed version control system"
-            },
-            {
-              "name": "iproute2",
-              "version": "6.1.0-1ubuntu6.2",
-              "description": "Network management tools (ip, ss, bridge)"
-            },
-            {
-              "name": "lsof",
-              "version": "4.95.0-1build3",
-              "description": "List open files and network connections"
-            },
-            {
-              "name": "procps",
-              "version": "2%3a4.0.4-4ubuntu3.2",
-              "description": "Process monitoring tools (top, ps, vmstat, free)"
-            },
-            {
-              "name": "rsync",
-              "version": "3.2.7-1ubuntu1.2",
-              "description": "Fast incremental file transfer utility"
-            },
-            {
-              "name": "snapd",
-              "version": "2.73+ubuntu24.04",
-              "description": "Snap package manager daemon"
-            },
-            {
-              "name": "strace",
-              "version": "6.8-0ubuntu2",
-              "description": "System call tracer for debugging"
-            },
-            {
-              "name": "sysstat",
-              "version": "12.6.1-2",
-              "description": "System performance tools (iostat, sar, pidstat)"
-            },
-            {
-              "name": "tcpdump",
-              "version": "4.99.4-3ubuntu4.24.04.1",
-              "description": "Network packet capture and analyzer"
+              "build": "20260126-1155",
+              "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260126-1155/debtools-24.04-20260126-1155",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.36-1ubuntu0.1",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "1%3a2.43.0-1ubuntu7.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute2",
+                  "version": "6.1.0-1ubuntu6.2",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.95.0-1build3",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps",
+                  "version": "2%3a4.0.4-4ubuntu3.2",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.7-1ubuntu1.2",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.73+ubuntu24.04",
+                  "description": "Snap package manager daemon"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.8-0ubuntu2",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.6.1-2",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.4-3ubuntu4.24.04.1",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "ece8d2cc11ad56013ccb85130560bc87b910d77281b22554eb9193d4d8adedb0",
+              "file_size": 226459559,
+              "arch": "amd64,arm64"
             }
-          ],
-          "sha256": "ece8d2cc11ad56013ccb85130560bc87b910d77281b22554eb9193d4d8adedb0",
-          "file_size": 226459559,
-          "arch": "amd64,arm64"
+          ]
         }
       }
     }
