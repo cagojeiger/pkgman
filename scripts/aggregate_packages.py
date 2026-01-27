@@ -85,13 +85,6 @@ def s3_list_prefixes(path: str) -> list[str]:
     return prefixes
 
 
-def get_latest(prefixes: list[str]) -> str | None:
-    """Pick the latest BUILD_DATE (YYYYMMDD-HHMM) by lexicographic sort."""
-    if not prefixes:
-        return None
-    return sorted(prefixes)[-1]
-
-
 def s3_fetch_json(path: str) -> dict | None:
     """Download a JSON file from S3 and return parsed content."""
     result = subprocess.run(
@@ -127,37 +120,48 @@ def download_url_os_versioned(tool: str, os_ver: str, build: str) -> str:
 # Per-type processors
 # ---------------------------------------------------------------------------
 def process_simple(tool_name: str, description: str) -> dict | None:
-    """Process a *simple* tool: one metadata.json at the latest BUILD_DATE."""
+    """Process a *simple* tool: fetch metadata.json for ALL builds (newest first)."""
     base = f"{s3_base()}/{tool_name}"
     print(f"[{tool_name}] Listing builds at {base}")
 
     versions = s3_list_prefixes(base)
-    latest = get_latest(versions)
-    if latest is None:
+    if not versions:
         print(f"  [skip] no versions found for {tool_name}")
         return None
 
-    print(f"  Latest build: {latest}")
-    meta_path = f"{base}/{latest}/metadata.json"
-    meta = s3_fetch_json(meta_path)
-    if meta is None:
+    versions = sorted(versions, reverse=True)
+    print(f"  Found {len(versions)} build(s): {', '.join(versions)}")
+
+    builds: list[dict] = []
+    for ver in versions:
+        meta_path = f"{base}/{ver}/metadata.json"
+        meta = s3_fetch_json(meta_path)
+        if meta is None:
+            print(f"  [skip] no metadata for build {ver}")
+            continue
+
+        entry = {
+            "version": ver,
+            "download_url": download_url_simple(tool_name, ver),
+            "packages": meta.get("packages", []),
+        }
+        for key in ("sha256", "file_size", "arch"):
+            if meta.get(key):
+                entry[key] = meta[key]
+        builds.append(entry)
+
+    if not builds:
         return None
 
-    result = {
+    return {
         "name": tool_name,
         "description": description,
-        "version": latest,
-        "download_url": download_url_simple(tool_name, latest),
-        "packages": meta.get("packages", []),
+        "builds": builds,
     }
-    for key in ("sha256", "file_size", "arch"):
-        if meta.get(key):
-            result[key] = meta[key]
-    return result
 
 
 def process_os_versioned(tool_name: str, description: str) -> dict | None:
-    """Process an *os_versioned* tool: iterate OS versions, pick latest each."""
+    """Process an *os_versioned* tool: iterate OS versions, fetch ALL builds each."""
     base = f"{s3_base()}/{tool_name}"
     print(f"[{tool_name}] Listing OS versions at {base}")
 
@@ -171,27 +175,34 @@ def process_os_versioned(tool_name: str, description: str) -> dict | None:
         os_base = f"{base}/{os_ver}"
         print(f"  [{os_ver}] Listing builds at {os_base}")
 
-        builds = s3_list_prefixes(os_base)
-        latest = get_latest(builds)
-        if latest is None:
+        build_names = s3_list_prefixes(os_base)
+        if not build_names:
             print(f"    [skip] no builds for {os_ver}")
             continue
 
-        print(f"    Latest build: {latest}")
-        meta_path = f"{os_base}/{latest}/metadata.json"
-        meta = s3_fetch_json(meta_path)
-        if meta is None:
-            continue
+        build_names = sorted(build_names, reverse=True)
+        print(f"    Found {len(build_names)} build(s): {', '.join(build_names)}")
 
-        entry = {
-            "build": latest,
-            "download_url": download_url_os_versioned(tool_name, os_ver, latest),
-            "packages": meta.get("packages", []),
-        }
-        for key in ("sha256", "file_size", "arch"):
-            if meta.get(key):
-                entry[key] = meta[key]
-        os_data[os_ver] = entry
+        builds: list[dict] = []
+        for build_name in build_names:
+            meta_path = f"{os_base}/{build_name}/metadata.json"
+            meta = s3_fetch_json(meta_path)
+            if meta is None:
+                print(f"    [skip] no metadata for build {build_name}")
+                continue
+
+            entry = {
+                "build": build_name,
+                "download_url": download_url_os_versioned(tool_name, os_ver, build_name),
+                "packages": meta.get("packages", []),
+            }
+            for key in ("sha256", "file_size", "arch"):
+                if meta.get(key):
+                    entry[key] = meta[key]
+            builds.append(entry)
+
+        if builds:
+            os_data[os_ver] = {"builds": builds}
 
     if not os_data:
         return None
