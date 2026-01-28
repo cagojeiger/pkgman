@@ -152,6 +152,15 @@ sudo ./snaptools install microk8s
 
 # 패키지 목록
 ./snaptools ls`,
+
+            'nvidia-rpmtools': (ver) => `# GPU 스택 설치 (드라이버 + fabric manager + container toolkit)
+sudo ./nvidia-rpmtools install ${ver} gpu-stack-570
+
+# 드라이버만 설치
+sudo ./nvidia-rpmtools install ${ver} nvidia-driver-570
+
+# 패키지 목록
+./nvidia-rpmtools ls`,
         };
 
         // Theme
@@ -226,7 +235,7 @@ sudo ./snaptools install microk8s
                             const latest = builds[0];
                             totalSize += latest.file_size || 0;
                             totalPkgs += latest.packages.length;
-                            const osLabel = t.name === 'rpmtools' ? `RHEL ${osVer}` : `Ubuntu ${osVer}`;
+                            const osLabel = t.name.includes('rpmtools') ? `RHEL ${osVer}` : `Ubuntu ${osVer}`;
                             osSet.add(osLabel);
                             if (latest.arch) latest.arch.split(',').forEach(a => archSet.add(a.trim()));
                         });
@@ -255,7 +264,7 @@ sudo ./snaptools install microk8s
                 `;
             }
 
-            ['bintools', 'rpmtools', 'debtools', 'snaptools'].forEach(name => {
+            ['bintools', 'rpmtools', 'debtools', 'snaptools', 'nvidia-rpmtools'].forEach(name => {
                 if (!data.tools[name]) return;
                 container.appendChild(createCard(data.tools[name]));
             });
@@ -278,7 +287,7 @@ sudo ./snaptools install microk8s
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
-                const osLabel = tool.name === 'rpmtools' ? 'Rocky/RHEL' : 'Ubuntu';
+                const osLabel = tool.name.includes('rpmtools') ? 'Rocky/RHEL' : 'Ubuntu';
                 const builds = getBuilds(tool, os);
                 const latest = builds[0];
                 version = `${osLabel} ${os}`;
@@ -360,7 +369,7 @@ sudo ./snaptools install microk8s
             const tool = packagesData.tools[name];
             const content = document.getElementById('detail-content');
             const isOsVersioned = !!tool.os_versions;
-            const osLabel = name === 'rpmtools' ? 'Rocky/RHEL' : 'Ubuntu';
+            const osLabel = name.includes('rpmtools') ? 'Rocky/RHEL' : 'Ubuntu';
 
             let html = `
                 <div class="flex items-center gap-3 mb-1">
