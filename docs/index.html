@@ -153,11 +153,8 @@ sudo ./snaptools install microk8s
 # 패키지 목록
 ./snaptools ls`,
 
-            'nvidia-rpmtools': (ver) => `# GPU 스택 설치 (드라이버 + fabric manager + container toolkit)
-sudo ./nvidia-rpmtools install ${ver} gpu-stack-570
-
-# 드라이버만 설치
-sudo ./nvidia-rpmtools install ${ver} nvidia-driver-570
+            'nvidia-rpmtools': (ver) => `# Fabric Manager 설치 (NVSwitch 멀티GPU 시스템용)
+sudo ./nvidia-rpmtools install ${ver} nvidia-fabricmanager-570
 
 # 패키지 목록
 ./nvidia-rpmtools ls`,
