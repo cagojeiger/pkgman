@@ -42,6 +42,10 @@ TOOLS: dict[str, dict] = {
         "type": "os_versioned",
         "description": "DEB 패키지 번들러",
     },
+    "nvidia-rpmtools": {
+        "type": "os_versioned",
+        "description": "NVIDIA B200 NVSwitch 패키지 번들러 (RPM)",
+    },
 }
 
 # ---------------------------------------------------------------------------

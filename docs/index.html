@@ -152,6 +152,18 @@ sudo ./snaptools install microk8s
 
 # 패키지 목록
 ./snaptools ls`,
+
+            'nvidia-rpmtools': (ver) => `# Fabric Manager 설치 (H100~B200 NVSwitch)
+sudo ./nvidia-rpmtools install ${ver} nvidia-fabricmanager-590
+
+# IMEX 설치 (멀티노드 NVLink)
+sudo ./nvidia-rpmtools install ${ver} nvidia-imex-590
+
+# B200 CX7 Bridge 의존성
+sudo ./nvidia-rpmtools install ${ver} libibumad infiniband-diags
+
+# 패키지 목록
+./nvidia-rpmtools ls`,
         };
 
         // Theme
@@ -226,7 +238,7 @@ sudo ./snaptools install microk8s
                             const latest = builds[0];
                             totalSize += latest.file_size || 0;
                             totalPkgs += latest.packages.length;
-                            const osLabel = t.name === 'rpmtools' ? `RHEL ${osVer}` : `Ubuntu ${osVer}`;
+                            const osLabel = t.name.includes('rpmtools') ? `RHEL ${osVer}` : `Ubuntu ${osVer}`;
                             osSet.add(osLabel);
                             if (latest.arch) latest.arch.split(',').forEach(a => archSet.add(a.trim()));
                         });
@@ -255,7 +267,7 @@ sudo ./snaptools install microk8s
                 `;
             }
 
-            ['bintools', 'rpmtools', 'debtools', 'snaptools'].forEach(name => {
+            ['bintools', 'rpmtools', 'debtools', 'snaptools', 'nvidia-rpmtools'].forEach(name => {
                 if (!data.tools[name]) return;
                 container.appendChild(createCard(data.tools[name]));
             });
@@ -278,7 +290,7 @@ sudo ./snaptools install microk8s
 
             if (isOsVersioned) {
                 const os = Object.keys(tool.os_versions).sort().reverse()[0];
-                const osLabel = tool.name === 'rpmtools' ? 'Rocky/RHEL' : 'Ubuntu';
+                const osLabel = tool.name.includes('rpmtools') ? 'Rocky/RHEL' : 'Ubuntu';
                 const builds = getBuilds(tool, os);
                 const latest = builds[0];
                 version = `${osLabel} ${os}`;
@@ -360,7 +372,7 @@ sudo ./snaptools install microk8s
             const tool = packagesData.tools[name];
             const content = document.getElementById('detail-content');
             const isOsVersioned = !!tool.os_versions;
-            const osLabel = name === 'rpmtools' ? 'Rocky/RHEL' : 'Ubuntu';
+            const osLabel = name.includes('rpmtools') ? 'Rocky/RHEL' : 'Ubuntu';
 
             let html = `
                 <div class="flex items-center gap-3 mb-1">
