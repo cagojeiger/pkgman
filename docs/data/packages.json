@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-28T07:29:59.225450+00:00",
+  "generated_at": "2026-01-28T07:42:23.899592+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -569,6 +569,65 @@
               ],
               "sha256": "89724b1ad1874f8f7a5cef589b063ae1cd50ba9f0bcb0055cb9910a4f614087d",
               "file_size": 482239511,
+              "arch": "x86_64,aarch64"
+            }
+          ]
+        }
+      }
+    },
+    "nvidia-debtools": {
+      "name": "nvidia-debtools",
+      "description": "NVIDIA B200 NVSwitch 패키지 번들러 (DEB)",
+      "os_versions": {
+        "22.04": {
+          "builds": [
+            {
+              "build": "20260128-0714",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260128-0714/nvidia-debtools-22.04-20260128-0714",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "39.0-1",
+                  "description": "InfiniBand diagnostic tools for network troubleshooting"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "39.0-1",
+                  "description": "InfiniBand Userspace MAD library for B200 CX7 Bridge"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                }
+              ],
+              "sha256": "4e99474baa2e9423a5109b72503a0c044d1b92a7144724a5bd1b9fa83a965576",
+              "file_size": 585953286,
               "arch": "x86_64,aarch64"
             }
           ]
