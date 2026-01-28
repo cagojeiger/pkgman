@@ -153,8 +153,14 @@ sudo ./snaptools install microk8s
 # 패키지 목록
 ./snaptools ls`,
 
-            'nvidia-rpmtools': (ver) => `# Fabric Manager 설치 (NVSwitch 멀티GPU 시스템용)
-sudo ./nvidia-rpmtools install ${ver} nvidia-fabricmanager-570
+            'nvidia-rpmtools': (ver) => `# Fabric Manager 설치 (H100~B200 NVSwitch)
+sudo ./nvidia-rpmtools install ${ver} nvidia-fabricmanager-590
+
+# IMEX 설치 (멀티노드 NVLink)
+sudo ./nvidia-rpmtools install ${ver} nvidia-imex-590
+
+# B200 CX7 Bridge 의존성
+sudo ./nvidia-rpmtools install ${ver} libibumad infiniband-diags
 
 # 패키지 목록
 ./nvidia-rpmtools ls`,

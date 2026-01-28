@@ -44,7 +44,7 @@ TOOLS: dict[str, dict] = {
     },
     "nvidia-rpmtools": {
         "type": "os_versioned",
-        "description": "NVIDIA Fabric Manager 번들러 (RPM)",
+        "description": "NVIDIA B200 NVSwitch 패키지 번들러 (RPM)",
     },
 }
 
