@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-28T07:42:23.899592+00:00",
+  "generated_at": "2026-01-28T09:48:20.112312+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -207,69 +207,6 @@
       "name": "rpmtools",
       "description": "RPM 패키지 번들러",
       "os_versions": {
-        "8": {
-          "builds": [
-            {
-              "build": "20260126-1150",
-              "download_url": "https://files.project-jelly.io/packages/rpmtools/8/20260126-1150/rpmtools-8-20260126-1150",
-              "packages": [
-                {
-                  "name": "fio",
-                  "version": "3.19",
-                  "description": "Flexible I/O Tester for storage benchmarking"
-                },
-                {
-                  "name": "git",
-                  "version": "2.43.7",
-                  "description": "Distributed version control system"
-                },
-                {
-                  "name": "iproute",
-                  "version": "6.2.0",
-                  "description": "Network management tools (ip, ss, bridge)"
-                },
-                {
-                  "name": "lsof",
-                  "version": "4.93.2",
-                  "description": "List open files and network connections"
-                },
-                {
-                  "name": "procps-ng",
-                  "version": "3.3.15",
-                  "description": "Process monitoring tools (top, ps, vmstat, free)"
-                },
-                {
-                  "name": "rsync",
-                  "version": "3.1.3",
-                  "description": "Fast incremental file transfer utility"
-                },
-                {
-                  "name": "snapd",
-                  "version": "2.72",
-                  "description": "Universal Linux package manager (Snap packages support)"
-                },
-                {
-                  "name": "strace",
-                  "version": "5.18",
-                  "description": "System call tracer for debugging"
-                },
-                {
-                  "name": "sysstat",
-                  "version": "11.7.3",
-                  "description": "System performance tools (iostat, sar, pidstat)"
-                },
-                {
-                  "name": "tcpdump",
-                  "version": "4.9.3",
-                  "description": "Network packet capture and analyzer"
-                }
-              ],
-              "sha256": "5b930e817c3326480a540938d905e6f9111cdd88de436a043c963b20bef041c3",
-              "file_size": 1823728259,
-              "arch": "x86_64,aarch64"
-            }
-          ]
-        },
         "9": {
           "builds": [
             {
@@ -473,6 +410,85 @@
       "os_versions": {
         "9": {
           "builds": [
+            {
+              "build": "20260128-0920",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-rpmtools/9/20260128-0920/nvidia-rpmtools-9-20260128-0920",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "57.0",
+                  "description": "InfiniBand diagnostic tools (B200 NVSwitch troubleshooting)"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "57.0",
+                  "description": "InfiniBand userspace MAD library (B200 CX7 Bridge dependency)"
+                },
+                {
+                  "name": "nvidia-driver-570-open",
+                  "version": "570.211.01",
+                  "description": "NVIDIA Driver 570 Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-580-open",
+                  "version": "570.211.01",
+                  "description": "NVIDIA Driver 580 Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-590-open",
+                  "version": "570.211.01",
+                  "description": "NVIDIA Driver 590 Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvlink5-570",
+                  "version": "570",
+                  "description": "NVLink5 570 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-580",
+                  "version": "570",
+                  "description": "NVLink5 580 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-590",
+                  "version": "570",
+                  "description": "NVLink5 590 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                }
+              ],
+              "sha256": "5365f06a768c5425f919e11346dd558d05b3166ba2998d210bb359e53f2570ba",
+              "file_size": 2886964517,
+              "arch": "x86_64,aarch64"
+            },
             {
               "build": "20260128-0544",
               "download_url": "https://files.project-jelly.io/packages/nvidia-rpmtools/9/20260128-0544/nvidia-rpmtools-9-20260128-0544",
