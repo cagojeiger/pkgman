@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-27T06:47:44.175291+00:00",
+  "generated_at": "2026-01-28T06:05:54.203325+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -462,6 +462,114 @@
               "sha256": "ece8d2cc11ad56013ccb85130560bc87b910d77281b22554eb9193d4d8adedb0",
               "file_size": 226459559,
               "arch": "amd64,arm64"
+            }
+          ]
+        }
+      }
+    },
+    "nvidia-rpmtools": {
+      "name": "nvidia-rpmtools",
+      "description": "NVIDIA B200 NVSwitch 패키지 번들러 (RPM)",
+      "os_versions": {
+        "9": {
+          "builds": [
+            {
+              "build": "20260128-0544",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-rpmtools/9/20260128-0544/nvidia-rpmtools-9-20260128-0544",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "57.0",
+                  "description": "InfiniBand diagnostic tools (B200 NVSwitch troubleshooting)"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "57.0",
+                  "description": "InfiniBand userspace MAD library (B200 CX7 Bridge dependency)"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                }
+              ],
+              "sha256": "520e43e685c2e6e76b2e78056d456b3c03f729573b96ca0c9cd21bd421c863d5",
+              "file_size": 482240250,
+              "arch": "x86_64,aarch64"
+            },
+            {
+              "build": "20260128-0521",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-rpmtools/9/20260128-0521/nvidia-rpmtools-9-20260128-0521",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "57.0",
+                  "description": "InfiniBand diagnostic tools (B200 NVSwitch troubleshooting)"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "57.0",
+                  "description": "InfiniBand userspace MAD library (B200 CX7 Bridge dependency)"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "580.126.09",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "570",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                }
+              ],
+              "sha256": "89724b1ad1874f8f7a5cef589b063ae1cd50ba9f0bcb0055cb9910a4f614087d",
+              "file_size": 482239511,
+              "arch": "x86_64,aarch64"
             }
           ]
         }
