@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-29T02:36:45.434357+00:00",
+  "generated_at": "2026-01-29T06:55:54.254507+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -210,6 +210,124 @@
         "9": {
           "builds": [
             {
+              "build": "20260129-0649",
+              "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260129-0649/rpmtools-9-20260129-0649",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.35",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "2.47.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute",
+                  "version": "6.14.0",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.94.0",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps-ng",
+                  "version": "3.3.17",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.5",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.72",
+                  "description": "Universal Linux package manager (Snap packages support)"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.12",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.4",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.0",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "3ea0b4cbdf23c57e849ceac960f8db454ff86b06429d10d4476255eb959f264c",
+              "file_size": 267552741,
+              "arch": "x86_64,aarch64"
+            },
+            {
+              "build": "20260129-0423",
+              "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260129-0423/rpmtools-9-20260129-0423",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.35",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "2.47.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute",
+                  "version": "6.14.0",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.94.0",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps-ng",
+                  "version": "3.3.17",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.5",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.72",
+                  "description": "Universal Linux package manager (Snap packages support)"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.12",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.4",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.0",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "c275a25c17d8c0b10f54f59d706e010eb503e2fbe758a627921d6829ef32afe5",
+              "file_size": 267557788,
+              "arch": "x86_64,aarch64"
+            },
+            {
               "build": "20260129-0222",
               "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260129-0222/rpmtools-9-20260129-0222",
               "packages": [
@@ -267,65 +385,6 @@
               "sha256": "6268b77f9ec00976e34058b000671a0d4e6b860864d01fe2377d2addf4bdba37",
               "file_size": 267555912,
               "arch": "x86_64,aarch64"
-            },
-            {
-              "build": "20260126-1140",
-              "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1140/rpmtools-9-20260126-1140",
-              "packages": [
-                {
-                  "name": "fio",
-                  "version": "3.35",
-                  "description": "Flexible I/O Tester for storage benchmarking"
-                },
-                {
-                  "name": "git",
-                  "version": "2.47.3",
-                  "description": "Distributed version control system"
-                },
-                {
-                  "name": "iproute",
-                  "version": "6.14.0",
-                  "description": "Network management tools (ip, ss, bridge)"
-                },
-                {
-                  "name": "lsof",
-                  "version": "4.94.0",
-                  "description": "List open files and network connections"
-                },
-                {
-                  "name": "procps-ng",
-                  "version": "3.3.17",
-                  "description": "Process monitoring tools (top, ps, vmstat, free)"
-                },
-                {
-                  "name": "rsync",
-                  "version": "3.2.5",
-                  "description": "Fast incremental file transfer utility"
-                },
-                {
-                  "name": "snapd",
-                  "version": "2.72",
-                  "description": "Universal Linux package manager (Snap packages support)"
-                },
-                {
-                  "name": "strace",
-                  "version": "6.12",
-                  "description": "System call tracer for debugging"
-                },
-                {
-                  "name": "sysstat",
-                  "version": "12.5.4",
-                  "description": "System performance tools (iostat, sar, pidstat)"
-                },
-                {
-                  "name": "tcpdump",
-                  "version": "4.99.0",
-                  "description": "Network packet capture and analyzer"
-                }
-              ],
-              "sha256": "643590fe41d5bd35f0e1d547712b3dfa0baf5b6934e647ee07b2be5933a4b5b0",
-              "file_size": 267557508,
-              "arch": "x86_64,aarch64"
             }
           ]
         }
@@ -337,6 +396,124 @@
       "os_versions": {
         "22.04": {
           "builds": [
+            {
+              "build": "20260129-0423",
+              "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260129-0423/debtools-22.04-20260129-0423",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.28-1",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "1%3a2.34.1-1ubuntu1.15",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute2",
+                  "version": "5.15.0-1ubuntu2",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.93.2+dfsg-1.1build2",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps",
+                  "version": "2%3a3.3.17-6ubuntu2.1",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.7-0ubuntu0.22.04.4",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.73+ubuntu22.04",
+                  "description": "Snap package manager daemon"
+                },
+                {
+                  "name": "strace",
+                  "version": "5.16-0ubuntu3",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.2-2ubuntu0.2",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.1-3ubuntu0.2",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "ae43c967e7f17c6c0991fdffae167d32de07493cb112deb15ccdc54240890409",
+              "file_size": 200453562,
+              "arch": "amd64,arm64"
+            },
+            {
+              "build": "20260129-0227",
+              "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260129-0227/debtools-22.04-20260129-0227",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.28-1",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "1%3a2.34.1-1ubuntu1.15",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute2",
+                  "version": "5.15.0-1ubuntu2",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.93.2+dfsg-1.1build2",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps",
+                  "version": "2%3a3.3.17-6ubuntu2.1",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.7-0ubuntu0.22.04.4",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.73+ubuntu22.04",
+                  "description": "Snap package manager daemon"
+                },
+                {
+                  "name": "strace",
+                  "version": "5.16-0ubuntu3",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.2-2ubuntu0.2",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.1-3ubuntu0.2",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "619c8c2e5c1b9d47224931abafbb9e61914c4de1d40e43af29d395b9b0747a0f",
+              "file_size": 200453512,
+              "arch": "amd64,arm64"
+            },
             {
               "build": "20260126-1140",
               "download_url": "https://files.project-jelly.io/packages/debtools/22.04/20260126-1140/debtools-22.04-20260126-1140",
