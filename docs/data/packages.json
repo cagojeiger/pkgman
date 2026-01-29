@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-29T09:18:16.005792+00:00",
+  "generated_at": "2026-01-29T10:20:28.462064+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -983,6 +983,100 @@
         "22.04": {
           "builds": [
             {
+              "build": "20260129-1006",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260129-1006/nvidia-debtools-22.04-20260129-1006",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "39.0-1",
+                  "description": "InfiniBand diagnostic tools for network troubleshooting"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "39.0-1",
+                  "description": "InfiniBand Userspace MAD library for B200 CX7 Bridge"
+                },
+                {
+                  "name": "libnvsdm-570",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 570 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "libnvsdm-580",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 580 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "libnvsdm-590",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 590 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "nvidia-driver-570-server-open",
+                  "version": "570.211.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 570 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-580-server-open",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 580 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-590-server-open",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 590 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvlink5-570",
+                  "version": "570.211.01-1",
+                  "description": "NVLink5 570 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-580",
+                  "version": "580.126.09-1",
+                  "description": "NVLink5 580 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-590",
+                  "version": "N/A",
+                  "description": "NVLink5 590 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                }
+              ],
+              "sha256": "d491365815688e41595a62ef072eea38f5e913280c71778e1fd9841afaf2e922",
+              "file_size": 4033224086,
+              "arch": "amd64"
+            },
+            {
               "build": "20260129-0222",
               "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260129-0222/nvidia-debtools-22.04-20260129-0222",
               "packages": [
@@ -1169,85 +1263,6 @@
               "sha256": "6d8f6d3a41b72784171a0255a6b162d5f39971a7f1fc1a0d7813f5ea99943201",
               "file_size": 4033224246,
               "arch": "amd64"
-            },
-            {
-              "build": "20260128-1013",
-              "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260128-1013/nvidia-debtools-22.04-20260128-1013",
-              "packages": [
-                {
-                  "name": "infiniband-diags",
-                  "version": "39.0-1",
-                  "description": "InfiniBand diagnostic tools for network troubleshooting"
-                },
-                {
-                  "name": "libibumad",
-                  "version": "39.0-1",
-                  "description": "InfiniBand Userspace MAD library for B200 CX7 Bridge"
-                },
-                {
-                  "name": "nvidia-driver-570-server-open",
-                  "version": "570.211.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Driver 570 Server Open Kernel Module for GPU compute"
-                },
-                {
-                  "name": "nvidia-driver-580-server-open",
-                  "version": "580.126.09-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Driver 580 Server Open Kernel Module for GPU compute"
-                },
-                {
-                  "name": "nvidia-driver-590-server-open",
-                  "version": "590.48.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Driver 590 Server Open Kernel Module for GPU compute"
-                },
-                {
-                  "name": "nvidia-fabricmanager-570",
-                  "version": "570.211.01-1",
-                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-fabricmanager-580",
-                  "version": "580.126.09-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-fabricmanager-590",
-                  "version": "590.48.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-imex-570",
-                  "version": "570.211.01-1",
-                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
-                },
-                {
-                  "name": "nvidia-imex-580",
-                  "version": "580.126.09-0ubuntu0.22.04.1",
-                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
-                },
-                {
-                  "name": "nvidia-imex-590",
-                  "version": "590.48.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
-                },
-                {
-                  "name": "nvlink5-570",
-                  "version": "570.211.01-1",
-                  "description": "NVLink5 570 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
-                },
-                {
-                  "name": "nvlink5-580",
-                  "version": "580.126.09-1",
-                  "description": "NVLink5 580 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
-                },
-                {
-                  "name": "nvlink5-590",
-                  "version": "N/A",
-                  "description": "NVLink5 590 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
-                }
-              ],
-              "sha256": "535f45c7c9b04fdd6b08c2534f50b03720ee90119557ec4bc8fddfd83e8cd95a",
-              "file_size": 8686909364,
-              "arch": "x86_64,aarch64"
             }
           ]
         }
