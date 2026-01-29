@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-29T07:56:38.407154+00:00",
+  "generated_at": "2026-01-29T09:18:16.005792+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -577,6 +577,65 @@
         },
         "24.04": {
           "builds": [
+            {
+              "build": "20260129-0842",
+              "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260129-0842/debtools-24.04-20260129-0842",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.36-1ubuntu0.1",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "1%3a2.43.0-1ubuntu7.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute2",
+                  "version": "6.1.0-1ubuntu6.2",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.95.0-1build3",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps",
+                  "version": "2%3a4.0.4-4ubuntu3.2",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.7-1ubuntu1.2",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.73+ubuntu24.04",
+                  "description": "Snap package manager daemon"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.8-0ubuntu2",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.6.1-2",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.4-3ubuntu4.24.04.1",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "0baed161ea8542a83d5f984a7198aca6707e68c897d7a27c7dd20f19ecf1bbf5",
+              "file_size": 226465151,
+              "arch": "amd64,arm64"
+            },
             {
               "build": "20260126-1155",
               "download_url": "https://files.project-jelly.io/packages/debtools/24.04/20260126-1155/debtools-24.04-20260126-1155",
