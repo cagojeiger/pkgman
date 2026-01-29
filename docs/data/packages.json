@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-01-28T12:31:32.798804+00:00",
+  "generated_at": "2026-01-29T02:36:45.434357+00:00",
   "cdn_base": "https://files.project-jelly.io/packages",
   "tools": {
     "bintools": {
@@ -209,6 +209,65 @@
       "os_versions": {
         "9": {
           "builds": [
+            {
+              "build": "20260129-0222",
+              "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260129-0222/rpmtools-9-20260129-0222",
+              "packages": [
+                {
+                  "name": "fio",
+                  "version": "3.35",
+                  "description": "Flexible I/O Tester for storage benchmarking"
+                },
+                {
+                  "name": "git",
+                  "version": "2.47.3",
+                  "description": "Distributed version control system"
+                },
+                {
+                  "name": "iproute",
+                  "version": "6.14.0",
+                  "description": "Network management tools (ip, ss, bridge)"
+                },
+                {
+                  "name": "lsof",
+                  "version": "4.94.0",
+                  "description": "List open files and network connections"
+                },
+                {
+                  "name": "procps-ng",
+                  "version": "3.3.17",
+                  "description": "Process monitoring tools (top, ps, vmstat, free)"
+                },
+                {
+                  "name": "rsync",
+                  "version": "3.2.5",
+                  "description": "Fast incremental file transfer utility"
+                },
+                {
+                  "name": "snapd",
+                  "version": "2.72",
+                  "description": "Universal Linux package manager (Snap packages support)"
+                },
+                {
+                  "name": "strace",
+                  "version": "6.12",
+                  "description": "System call tracer for debugging"
+                },
+                {
+                  "name": "sysstat",
+                  "version": "12.5.4",
+                  "description": "System performance tools (iostat, sar, pidstat)"
+                },
+                {
+                  "name": "tcpdump",
+                  "version": "4.99.0",
+                  "description": "Network packet capture and analyzer"
+                }
+              ],
+              "sha256": "6268b77f9ec00976e34058b000671a0d4e6b860864d01fe2377d2addf4bdba37",
+              "file_size": 267555912,
+              "arch": "x86_64,aarch64"
+            },
             {
               "build": "20260126-1140",
               "download_url": "https://files.project-jelly.io/packages/rpmtools/9/20260126-1140/rpmtools-9-20260126-1140",
@@ -643,6 +702,100 @@
         "22.04": {
           "builds": [
             {
+              "build": "20260129-0222",
+              "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260129-0222/nvidia-debtools-22.04-20260129-0222",
+              "packages": [
+                {
+                  "name": "infiniband-diags",
+                  "version": "39.0-1",
+                  "description": "InfiniBand diagnostic tools for network troubleshooting"
+                },
+                {
+                  "name": "libibumad",
+                  "version": "39.0-1",
+                  "description": "InfiniBand Userspace MAD library for B200 CX7 Bridge"
+                },
+                {
+                  "name": "libnvsdm-570",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 570 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "libnvsdm-580",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 580 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "libnvsdm-590",
+                  "version": "590.48.01-0ubuntu1",
+                  "description": "NVSwitch Device Monitoring Library 590 for Blackwell NVSwitch telemetry"
+                },
+                {
+                  "name": "nvidia-driver-570-server-open",
+                  "version": "570.211.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 570 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-580-server-open",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 580 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-driver-590-server-open",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Driver 590 Server Open Kernel Module for GPU compute"
+                },
+                {
+                  "name": "nvidia-fabricmanager-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-fabricmanager-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
+                },
+                {
+                  "name": "nvidia-imex-570",
+                  "version": "570.211.01-1",
+                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-580",
+                  "version": "580.126.09-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvidia-imex-590",
+                  "version": "590.48.01-0ubuntu0.22.04.1",
+                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
+                },
+                {
+                  "name": "nvlink5-570",
+                  "version": "570.211.01-1",
+                  "description": "NVLink5 570 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-580",
+                  "version": "580.126.09-1",
+                  "description": "NVLink5 580 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                },
+                {
+                  "name": "nvlink5-590",
+                  "version": "N/A",
+                  "description": "NVLink5 590 NVLink Subnet Manager for 4th-gen NVSwitch (Blackwell)"
+                }
+              ],
+              "sha256": "1fee216ca13e6c154c14f226e56133529ce684224a538b7f30094d5d71c431f1",
+              "file_size": 4033225305,
+              "arch": "amd64"
+            },
+            {
               "build": "20260128-1218",
               "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260128-1218/nvidia-debtools-22.04-20260128-1218",
               "packages": [
@@ -813,55 +966,6 @@
               ],
               "sha256": "535f45c7c9b04fdd6b08c2534f50b03720ee90119557ec4bc8fddfd83e8cd95a",
               "file_size": 8686909364,
-              "arch": "x86_64,aarch64"
-            },
-            {
-              "build": "20260128-0714",
-              "download_url": "https://files.project-jelly.io/packages/nvidia-debtools/22.04/20260128-0714/nvidia-debtools-22.04-20260128-0714",
-              "packages": [
-                {
-                  "name": "infiniband-diags",
-                  "version": "39.0-1",
-                  "description": "InfiniBand diagnostic tools for network troubleshooting"
-                },
-                {
-                  "name": "libibumad",
-                  "version": "39.0-1",
-                  "description": "InfiniBand Userspace MAD library for B200 CX7 Bridge"
-                },
-                {
-                  "name": "nvidia-fabricmanager-570",
-                  "version": "570.211.01-1",
-                  "description": "NVIDIA Fabric Manager 570 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-fabricmanager-580",
-                  "version": "580.126.09-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Fabric Manager 580 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-fabricmanager-590",
-                  "version": "590.48.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA Fabric Manager 590 for NVSwitch multi-GPU systems"
-                },
-                {
-                  "name": "nvidia-imex-570",
-                  "version": "570.211.01-1",
-                  "description": "NVIDIA IMEX 570 - GPU memory import/export for multi-node NVLink"
-                },
-                {
-                  "name": "nvidia-imex-580",
-                  "version": "580.126.09-0ubuntu0.22.04.1",
-                  "description": "NVIDIA IMEX 580 - GPU memory import/export for multi-node NVLink"
-                },
-                {
-                  "name": "nvidia-imex-590",
-                  "version": "590.48.01-0ubuntu0.22.04.1",
-                  "description": "NVIDIA IMEX 590 - GPU memory import/export for multi-node NVLink"
-                }
-              ],
-              "sha256": "4e99474baa2e9423a5109b72503a0c044d1b92a7144724a5bd1b9fa83a965576",
-              "file_size": 585953286,
               "arch": "x86_64,aarch64"
             }
           ]
