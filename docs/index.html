@@ -284,6 +284,20 @@ sudo ./nvidia-debtools install ${ver} libibumad infiniband-diags
                 container.appendChild(createCard(data.tools[name]));
             });
 
+            // Add GPU Hardware Architecture Guide link after nvidia tools
+            const gpuGuideCard = document.createElement('a');
+            gpuGuideCard.href = 'gpu-hw-architecture.html';
+            gpuGuideCard.className = 'col-span-full bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 border border-green-200 dark:border-green-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-md transition-shadow focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2';
+            gpuGuideCard.innerHTML = `
+                <span class="text-3xl">🖥️</span>
+                <div class="flex-1">
+                    <h3 class="font-semibold text-green-800 dark:text-green-300">GPU 하드웨어 아키텍처 가이드</h3>
+                    <p class="text-sm text-green-600 dark:text-green-400">PCIe, NVLink, NVSwitch, InfiniBand 계층 구조와 H200/B200 차이점</p>
+                </div>
+                <span class="text-green-600 dark:text-green-400">→</span>
+            `;
+            container.appendChild(gpuGuideCard);
+
             const date = new Date(data.generated_at);
             document.getElementById('last-updated').textContent = `Last updated: ${date.toISOString().slice(0, 16).replace('T', ' ')} UTC`;
 
