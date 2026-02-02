@@ -416,7 +416,7 @@
                         <div>sudo ./nvidia-rpmtools install 9 \</div>
                         <div class="pl-4">nvidia-driver-590-open \</div>
                         <div class="pl-4">nvidia-fabricmanager-590 \</div>
-                        <div class="pl-4 text-amber-400">libibumad infiniband-diags</div>
+                        <div class="pl-4 text-amber-400">libibumad infiniband-diags nvlink5-590</div>
                         <div class="mt-2 text-stone-500"># 2. Fabric Manager 시작</div>
                         <div>sudo systemctl enable --now nvidia-fabricmanager</div>
                         <div class="mt-2 text-stone-500"># 3. vLLM 설치 (venv 권장)</div>
@@ -819,7 +819,11 @@
                             </div>
                             <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-700">
                                 <div class="font-mono text-sm">libibumad + infiniband-diags</div>
-                                <div class="text-xs text-amber-600 dark:text-amber-400">⚠️ B200 전용</div>
+                                <div class="text-xs text-amber-600 dark:text-amber-400">⚠️ B200 전용 (CX7 Bridge)</div>
+                            </div>
+                            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-700">
+                                <div class="font-mono text-sm">nvlink5-590</div>
+                                <div class="text-xs text-amber-600 dark:text-amber-400">⚠️ B200 전용 (NVLink Subnet Manager)</div>
                             </div>
                         </div>
                     </div>
@@ -833,10 +837,88 @@
                         <div>sudo ./nvidia-rpmtools install 9 \</div>
                         <div class="pl-4">nvidia-driver-590-open \</div>
                         <div class="pl-4">nvidia-fabricmanager-590 \</div>
-                        <div class="pl-4">libibumad infiniband-diags  <span class="text-stone-500"># B200만</span></div>
+                        <div class="pl-4">libibumad infiniband-diags nvlink5-590  <span class="text-stone-500"># B200만</span></div>
                         <div class="mt-2 text-stone-500"># Fabric Manager 시작</div>
                         <div>sudo systemctl enable --now nvidia-fabricmanager</div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Optional Packages -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📦 선택 패키지 (고급)</h2>
+            <div class="bg-stone-50 dark:bg-stone-800 rounded-2xl p-6 border border-stone-200 dark:border-stone-700">
+                <p class="text-sm text-stone-600 dark:text-stone-300 mb-4">
+                    다음 패키지들은 <strong>단일 노드 추론</strong>에는 필요하지 않지만, 
+                    특정 환경에서 필요할 수 있습니다.
+                </p>
+                
+                <div class="space-y-4">
+                    <!-- nvidia-imex -->
+                    <div class="bg-white dark:bg-stone-900 rounded-xl p-4 border border-stone-200 dark:border-stone-700">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <code class="font-mono text-sm bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded">nvidia-imex-590</code>
+                                    <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded-full">멀티노드</span>
+                                </div>
+                                <h4 class="font-semibold mb-1">NVIDIA IMEX (Internode Memory Exchange)</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">
+                                    여러 물리 서버가 NVLink로 연결된 환경에서 GPU 메모리를 노드 간 공유할 때 필요합니다.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
+                            <div class="text-xs text-stone-500 dark:text-stone-400">
+                                <strong>필요한 경우:</strong>
+                            </div>
+                            <ul class="mt-1 text-xs text-stone-600 dark:text-stone-300 space-y-1">
+                                <li>• <strong>GB200 NVL72</strong> - 18노드 72GPU 랙 스케일 시스템</li>
+                                <li>• <strong>멀티노드 학습</strong> - 여러 서버에서 NVLink로 연결된 분산 학습</li>
+                                <li>• <strong>멀티노드 추론</strong> - 초대형 모델을 여러 노드에 분산</li>
+                            </ul>
+                            <div class="mt-2 text-xs text-green-600 dark:text-green-400">
+                                ✓ 단일 노드 HGX H200/B200에서는 <strong>불필요</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- libnvsdm -->
+                    <div class="bg-white dark:bg-stone-900 rounded-xl p-4 border border-stone-200 dark:border-stone-700">
+                        <div class="flex items-start justify-between gap-4">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <code class="font-mono text-sm bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded">libnvsdm-590</code>
+                                    <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">모니터링</span>
+                                </div>
+                                <h4 class="font-semibold mb-1">NVSwitch Device Monitoring Library</h4>
+                                <p class="text-sm text-stone-600 dark:text-stone-400">
+                                    NVSwitch 텔레메트리 및 상태 모니터링을 위한 라이브러리입니다. DCGM이 NVSwitch 메트릭을 수집할 때 사용됩니다.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-3 border-t border-stone-200 dark:border-stone-700">
+                            <div class="text-xs text-stone-500 dark:text-stone-400">
+                                <strong>필요한 경우:</strong>
+                            </div>
+                            <ul class="mt-1 text-xs text-stone-600 dark:text-stone-300 space-y-1">
+                                <li>• <strong>DCGM 모니터링</strong> - Grafana 대시보드로 NVSwitch 상태 확인</li>
+                                <li>• <strong>프로덕션 환경</strong> - 장애 예방을 위한 사전 모니터링</li>
+                                <li>• <strong>NVSwitch 디버깅</strong> - 패브릭 문제 진단</li>
+                            </ul>
+                            <div class="mt-2 text-xs text-green-600 dark:text-green-400">
+                                ✓ 모니터링 없이 추론만 할 경우 <strong>불필요</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Install Command -->
+                <div class="mt-4 bg-stone-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+                    <div class="text-stone-500"># 선택 패키지 설치 (필요한 경우만)</div>
+                    <div>sudo ./nvidia-rpmtools install 9 nvidia-imex-590  <span class="text-stone-500"># 멀티노드</span></div>
+                    <div>sudo ./nvidia-rpmtools install 9 libnvsdm-590    <span class="text-stone-500"># 모니터링</span></div>
                 </div>
             </div>
         </section>
