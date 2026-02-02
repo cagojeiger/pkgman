@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU 하드웨어 아키텍처 가이드</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['SF Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .layer-card { transition: all 0.3s ease; }
+        .layer-card:hover { transform: translateY(-2px); }
+        .connector { 
+            width: 2px; 
+            background: linear-gradient(to bottom, currentColor 50%, transparent 50%);
+            background-size: 100% 8px;
+        }
+        .gpu-box {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+        .nvswitch-box {
+            background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+        }
+        .cpu-box {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+        }
+        .ib-box {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
+    <!-- Header -->
+    <header class="bg-stone-100/90 dark:bg-stone-800/90 border-b border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="index.html" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                        ← 뒤로
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold text-teal-600 dark:text-teal-400">GPU 하드웨어 아키텍처</h1>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">PCIe, NVLink, NVSwitch, InfiniBand 이해하기</p>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                    <span class="dark:hidden">☀️</span>
+                    <span class="hidden dark:inline">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Overview Section -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-teal-50 to-blue-50 dark:from-teal-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-teal-200 dark:border-teal-800">
+                <h2 class="text-2xl font-bold mb-4">🎯 개요</h2>
+                <p class="text-stone-700 dark:text-stone-300 mb-4">
+                    NVIDIA GPU 시스템은 여러 연결 기술이 <strong>계층 구조</strong>로 이루어져 있습니다.
+                    각 레이어는 서로 다른 목적과 속도를 가지며, 시스템 구성에 따라 필요한 레이어가 달라집니다.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔌</div>
+                        <div class="text-sm font-semibold">PCIe</div>
+                        <div class="text-xs text-stone-500">CPU ↔ GPU</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">⚡</div>
+                        <div class="text-sm font-semibold">NVLink</div>
+                        <div class="text-xs text-stone-500">GPU ↔ NVSwitch</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔀</div>
+                        <div class="text-sm font-semibold">NVSwitch</div>
+                        <div class="text-xs text-stone-500">GPU 라우팅</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🌐</div>
+                        <div class="text-sm font-semibold">InfiniBand</div>
+                        <div class="text-xs text-stone-500">노드 ↔ 노드</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layer Stack Diagram -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📊 레이어 구조</h2>
+            <div class="bg-stone-50 dark:bg-stone-800 rounded-2xl p-6 border border-stone-200 dark:border-stone-700">
+                <div class="space-y-3">
+                    <!-- Layer 4 -->
+                    <div class="layer-card bg-purple-100 dark:bg-purple-900/30 rounded-xl p-4 border-2 border-purple-300 dark:border-purple-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🌐</span>
+                                <div>
+                                    <div class="font-bold text-purple-800 dark:text-purple-300">Layer 4: InfiniBand</div>
+                                    <div class="text-sm text-purple-600 dark:text-purple-400">노드 간 통신 (Multi-Node)</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-mono text-purple-700 dark:text-purple-300">400 Gb/s</div>
+                                <div class="text-xs text-purple-500">ConnectX-7</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <svg width="24" height="24" class="text-stone-400"><path d="M12 4v16m-4-4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                    </div>
+
+                    <!-- Layer 3 -->
+                    <div class="layer-card bg-orange-100 dark:bg-orange-900/30 rounded-xl p-4 border-2 border-orange-300 dark:border-orange-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🔀</span>
+                                <div>
+                                    <div class="font-bold text-orange-800 dark:text-orange-300">Layer 3: NVSwitch</div>
+                                    <div class="text-sm text-orange-600 dark:text-orange-400">GPU 간 트래픽 라우팅 (All-to-All)</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-mono text-orange-700 dark:text-orange-300">스위치</div>
+                                <div class="text-xs text-orange-500">HGX/DGX 전용</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <svg width="24" height="24" class="text-stone-400"><path d="M12 4v16m-4-4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                    </div>
+
+                    <!-- Layer 2 -->
+                    <div class="layer-card bg-blue-100 dark:bg-blue-900/30 rounded-xl p-4 border-2 border-blue-300 dark:border-blue-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">⚡</span>
+                                <div>
+                                    <div class="font-bold text-blue-800 dark:text-blue-300">Layer 2: NVLink</div>
+                                    <div class="text-sm text-blue-600 dark:text-blue-400">GPU ↔ NVSwitch 물리적 연결</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-mono text-blue-700 dark:text-blue-300">1.8 TB/s</div>
+                                <div class="text-xs text-blue-500">NVLink 5 (B200)</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-center">
+                        <svg width="24" height="24" class="text-stone-400"><path d="M12 4v16m-4-4l4 4 4-4" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+                    </div>
+
+                    <!-- Layer 1 -->
+                    <div class="layer-card bg-green-100 dark:bg-green-900/30 rounded-xl p-4 border-2 border-green-300 dark:border-green-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">🔌</span>
+                                <div>
+                                    <div class="font-bold text-green-800 dark:text-green-300">Layer 1: PCIe</div>
+                                    <div class="text-sm text-green-600 dark:text-green-400">CPU ↔ GPU 기본 연결</div>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-sm font-mono text-green-700 dark:text-green-300">~128 GB/s</div>
+                                <div class="text-xs text-green-500">PCIe 5.0 x16</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Layer Details -->
+        <section class="mb-12 space-y-8">
+            <h2 class="text-2xl font-bold">🔍 각 레이어 상세</h2>
+
+            <!-- PCIe -->
+            <div id="pcie" class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-green-500 dark:bg-green-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>🔌</span> Layer 1: PCIe (Peripheral Component Interconnect Express)
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3 text-green-700 dark:text-green-400">역할</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-green-500">•</span>
+                                    <span>CPU가 GPU를 <strong>제어</strong>하는 기본 경로</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-green-500">•</span>
+                                    <span>CPU ↔ GPU 간 <strong>데이터 전송</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-green-500">•</span>
+                                    <span>GPU 드라이버가 GPU와 통신하는 경로</span>
+                                </li>
+                            </ul>
+
+                            <h4 class="font-semibold mb-3 mt-6 text-green-700 dark:text-green-400">특징</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-green-500">✓</span>
+                                    <span><strong>모든 GPU</strong>에 존재 (필수)</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-green-500">✓</span>
+                                    <span>표준 인터페이스 (호환성 높음)</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500">△</span>
+                                    <span>NVLink 대비 <strong>속도 제한</strong></span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-green-700 dark:text-green-400">다이어그램</h4>
+                            <!-- PCIe Diagram -->
+                            <div class="bg-stone-100 dark:bg-stone-900 rounded-lg p-6">
+                                <div class="flex items-center justify-center gap-4">
+                                    <div class="cpu-box text-white px-4 py-3 rounded-lg text-center shadow-lg">
+                                        <div class="text-xs opacity-80">CPU</div>
+                                        <div class="font-bold">Intel Xeon</div>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="text-xs text-stone-500 mb-1">PCIe 5.0</div>
+                                        <div class="w-16 h-1 bg-gradient-to-r from-blue-500 to-green-500 rounded"></div>
+                                        <div class="text-xs text-stone-500 mt-1">~128 GB/s</div>
+                                    </div>
+                                    <div class="gpu-box text-white px-4 py-3 rounded-lg text-center shadow-lg">
+                                        <div class="text-xs opacity-80">GPU</div>
+                                        <div class="font-bold">NVIDIA</div>
+                                    </div>
+                                </div>
+                                <div class="mt-4 flex justify-center">
+                                    <div class="text-center">
+                                        <div class="w-px h-6 bg-stone-300 dark:bg-stone-600 mx-auto"></div>
+                                        <div class="bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-3 py-1 rounded text-xs">
+                                            시스템 메모리 (RAM)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                                <p class="text-xs text-green-800 dark:text-green-300">
+                                    <strong>💡 비유:</strong> PCIe는 "일반 도로"와 같습니다. 
+                                    모든 차량(데이터)이 사용할 수 있지만, 대용량 화물에는 고속도로(NVLink)가 더 적합합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NVLink -->
+            <div id="nvlink" class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-blue-500 dark:bg-blue-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>⚡</span> Layer 2: NVLink
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3 text-blue-700 dark:text-blue-400">역할</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span>GPU와 NVSwitch를 <strong>물리적으로 연결</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span>GPU 간 <strong>고속 데이터 전송</strong> 경로</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span>PCIe 대비 <strong>14배 빠른</strong> 대역폭</span>
+                                </li>
+                            </ul>
+
+                            <h4 class="font-semibold mb-3 mt-6 text-blue-700 dark:text-blue-400">NVLink 버전별 속도</h4>
+                            <table class="w-full text-xs">
+                                <thead class="bg-blue-50 dark:bg-blue-900/30">
+                                    <tr>
+                                        <th class="px-2 py-1 text-left">버전</th>
+                                        <th class="px-2 py-1 text-left">GPU</th>
+                                        <th class="px-2 py-1 text-left">링크당</th>
+                                        <th class="px-2 py-1 text-left">링크 수</th>
+                                        <th class="px-2 py-1 text-left">총 대역폭</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-stone-600 dark:text-stone-400">
+                                    <tr class="border-t border-stone-200 dark:border-stone-700">
+                                        <td class="px-2 py-1">NVLink 3</td>
+                                        <td class="px-2 py-1">A100</td>
+                                        <td class="px-2 py-1">50 GB/s</td>
+                                        <td class="px-2 py-1">12</td>
+                                        <td class="px-2 py-1 font-semibold">600 GB/s</td>
+                                    </tr>
+                                    <tr class="border-t border-stone-200 dark:border-stone-700">
+                                        <td class="px-2 py-1">NVLink 4</td>
+                                        <td class="px-2 py-1">H100/H200</td>
+                                        <td class="px-2 py-1">50 GB/s</td>
+                                        <td class="px-2 py-1">18</td>
+                                        <td class="px-2 py-1 font-semibold">900 GB/s</td>
+                                    </tr>
+                                    <tr class="border-t border-stone-200 dark:border-stone-700 bg-blue-50 dark:bg-blue-900/20">
+                                        <td class="px-2 py-1 font-semibold">NVLink 5</td>
+                                        <td class="px-2 py-1">B200</td>
+                                        <td class="px-2 py-1">100 GB/s</td>
+                                        <td class="px-2 py-1">18</td>
+                                        <td class="px-2 py-1 font-semibold text-blue-600 dark:text-blue-400">1.8 TB/s</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-blue-700 dark:text-blue-400">다이어그램</h4>
+                            <!-- NVLink Diagram -->
+                            <div class="bg-stone-100 dark:bg-stone-900 rounded-lg p-6">
+                                <div class="grid grid-cols-4 gap-2 mb-4">
+                                    <div class="gpu-box text-white p-2 rounded text-center text-xs shadow">
+                                        <div class="font-bold">GPU 0</div>
+                                    </div>
+                                    <div class="gpu-box text-white p-2 rounded text-center text-xs shadow">
+                                        <div class="font-bold">GPU 1</div>
+                                    </div>
+                                    <div class="gpu-box text-white p-2 rounded text-center text-xs shadow">
+                                        <div class="font-bold">GPU 2</div>
+                                    </div>
+                                    <div class="gpu-box text-white p-2 rounded text-center text-xs shadow">
+                                        <div class="font-bold">GPU 3</div>
+                                    </div>
+                                </div>
+                                <!-- NVLink lines -->
+                                <div class="flex justify-center mb-2">
+                                    <div class="flex items-center gap-1">
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                        <div class="w-16 h-0.5 bg-blue-500"></div>
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                        <div class="w-16 h-0.5 bg-blue-500"></div>
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                        <div class="w-16 h-0.5 bg-blue-500"></div>
+                                        <div class="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    </div>
+                                </div>
+                                <div class="text-center text-xs text-blue-600 dark:text-blue-400 mb-2">NVLink (1.8 TB/s)</div>
+                                <div class="flex justify-center">
+                                    <div class="w-px h-4 bg-blue-500"></div>
+                                </div>
+                                <div class="flex justify-center">
+                                    <div class="nvswitch-box text-white px-6 py-2 rounded-lg text-center shadow-lg">
+                                        <div class="text-xs opacity-80">NVSwitch</div>
+                                        <div class="font-bold text-sm">4세대</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                                <p class="text-xs text-blue-800 dark:text-blue-300">
+                                    <strong>💡 비유:</strong> NVLink는 "고속도로"입니다. 
+                                    GPU 간 대용량 데이터(gradient, activation)를 빠르게 전송합니다.
+                                </p>
+                            </div>
+                            <div class="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+                                <p class="text-xs text-amber-800 dark:text-amber-300">
+                                    <strong>⚠️ 주의:</strong> NVLink는 <strong>HGX/DGX 시스템에만</strong> 존재합니다.
+                                    일반 PCIe GPU (RTX 4090, A10 등)에는 없습니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NVSwitch -->
+            <div id="nvswitch" class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-orange-500 dark:bg-orange-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>🔀</span> Layer 3: NVSwitch
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3 text-orange-700 dark:text-orange-400">역할</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-orange-500">•</span>
+                                    <span>NVLink 트래픽을 <strong>라우팅</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-orange-500">•</span>
+                                    <span><strong>Any-to-Any</strong> GPU 통신 가능하게 함</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-orange-500">•</span>
+                                    <span>네트워크 스위치와 유사한 역할</span>
+                                </li>
+                            </ul>
+
+                            <h4 class="font-semibold mb-3 mt-6 text-orange-700 dark:text-orange-400">NVSwitch 없이 vs 있을 때</h4>
+                            <div class="space-y-3 text-xs">
+                                <div class="p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                                    <strong class="text-red-700 dark:text-red-400">❌ NVSwitch 없이:</strong>
+                                    <p class="text-stone-600 dark:text-stone-400 mt-1">GPU 0 → GPU 3: 3홉 필요 (0→1→2→3)</p>
+                                </div>
+                                <div class="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                                    <strong class="text-green-700 dark:text-green-400">✅ NVSwitch 있으면:</strong>
+                                    <p class="text-stone-600 dark:text-stone-400 mt-1">GPU 0 → GPU 3: 1홉 (스위치 경유)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-orange-700 dark:text-orange-400">다이어그램</h4>
+                            <!-- NVSwitch Diagram -->
+                            <div class="bg-stone-100 dark:bg-stone-900 rounded-lg p-6">
+                                <div class="relative">
+                                    <!-- GPUs around the switch -->
+                                    <div class="flex justify-between mb-8">
+                                        <div class="gpu-box text-white px-3 py-2 rounded text-xs shadow">GPU 0</div>
+                                        <div class="gpu-box text-white px-3 py-2 rounded text-xs shadow">GPU 7</div>
+                                    </div>
+                                    
+                                    <!-- Center NVSwitch -->
+                                    <div class="flex justify-center mb-8">
+                                        <div class="nvswitch-box text-white px-8 py-4 rounded-xl shadow-lg text-center">
+                                            <div class="text-xs opacity-80">NVSwitch</div>
+                                            <div class="font-bold">All-to-All</div>
+                                            <div class="text-xs opacity-80 mt-1">라우터 역할</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="flex justify-between">
+                                        <div class="gpu-box text-white px-3 py-2 rounded text-xs shadow">GPU 1</div>
+                                        <div class="gpu-box text-white px-3 py-2 rounded text-xs shadow">GPU 6</div>
+                                    </div>
+                                    
+                                    <!-- Connection lines (simplified with SVG) -->
+                                    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: -1;">
+                                        <line x1="15%" y1="15%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
+                                        <line x1="85%" y1="15%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
+                                        <line x1="15%" y1="85%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
+                                        <line x1="85%" y1="85%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
+                                    </svg>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                                <p class="text-xs text-orange-800 dark:text-orange-300">
+                                    <strong>💡 비유:</strong> NVSwitch는 "고속도로 IC/JC (인터체인지)"입니다.
+                                    어떤 GPU에서 어떤 GPU로든 1홉으로 갈 수 있게 해줍니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- H200 vs B200 -->
+                    <div class="mt-6 pt-6 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-4 text-orange-700 dark:text-orange-400">H200 vs B200: NVSwitch 차이</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+                                <h5 class="font-semibold text-blue-800 dark:text-blue-300 mb-3">H200 (3세대 NVSwitch)</h5>
+                                <!-- H200 Diagram -->
+                                <div class="bg-white dark:bg-stone-800 rounded-lg p-4 mb-3">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <div class="cpu-box text-white px-3 py-1 rounded text-xs">CPU</div>
+                                        <div class="flex items-center">
+                                            <div class="w-8 h-0.5 bg-green-500"></div>
+                                            <div class="text-xs text-stone-500 mx-1">PCIe</div>
+                                            <div class="w-8 h-0.5 bg-green-500"></div>
+                                        </div>
+                                        <div class="nvswitch-box text-white px-3 py-1 rounded text-xs">NVSwitch</div>
+                                    </div>
+                                    <div class="text-center text-xs text-green-600 mt-2">직접 제어 ✓</div>
+                                </div>
+                                <ul class="text-xs text-stone-600 dark:text-stone-400 space-y-1">
+                                    <li>• NVSwitch가 <strong>PCIe 장치</strong>로 보임</li>
+                                    <li>• Host에서 직접 제어 가능</li>
+                                    <li>• Fabric Manager만 필요</li>
+                                </ul>
+                            </div>
+                            <div class="p-4 bg-purple-50 dark:bg-purple-900/20 rounded-xl border border-purple-200 dark:border-purple-800">
+                                <h5 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">B200 (4세대 NVSwitch)</h5>
+                                <!-- B200 Diagram -->
+                                <div class="bg-white dark:bg-stone-800 rounded-lg p-4 mb-3">
+                                    <div class="flex items-center justify-center gap-1">
+                                        <div class="cpu-box text-white px-2 py-1 rounded text-xs">CPU</div>
+                                        <div class="w-4 h-0.5 bg-green-500"></div>
+                                        <div class="ib-box text-white px-2 py-1 rounded text-xs">CX7</div>
+                                        <div class="w-4 h-0.5 bg-purple-500"></div>
+                                        <div class="nvswitch-box text-white px-2 py-1 rounded text-xs">NVSwitch</div>
+                                    </div>
+                                    <div class="flex justify-center gap-4 text-xs mt-2">
+                                        <span class="text-green-600">PCIe</span>
+                                        <span class="text-purple-600">IB</span>
+                                    </div>
+                                    <div class="text-center text-xs text-purple-600 mt-1">간접 제어 (CX7 경유)</div>
+                                </div>
+                                <ul class="text-xs text-stone-600 dark:text-stone-400 space-y-1">
+                                    <li>• NVSwitch가 <strong>PCIe에 안 보임</strong></li>
+                                    <li>• CX7 Bridge 경유 필요</li>
+                                    <li>• Fabric Manager + <strong>libibumad</strong> 필요</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- InfiniBand -->
+            <div id="infiniband" class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-purple-500 dark:bg-purple-600 px-6 py-4">
+                    <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                        <span>🌐</span> Layer 4: InfiniBand
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div>
+                            <h4 class="font-semibold mb-3 text-purple-700 dark:text-purple-400">역할</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-500">•</span>
+                                    <span><strong>서버 간</strong> 고속 네트워크 연결</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-500">•</span>
+                                    <span>Multi-node 분산 학습에 필수</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-purple-500">•</span>
+                                    <span>RDMA (Remote Direct Memory Access) 지원</span>
+                                </li>
+                            </ul>
+
+                            <h4 class="font-semibold mb-3 mt-6 text-purple-700 dark:text-purple-400">NVSwitch vs InfiniBand</h4>
+                            <table class="w-full text-xs">
+                                <thead class="bg-purple-50 dark:bg-purple-900/30">
+                                    <tr>
+                                        <th class="px-2 py-1 text-left"></th>
+                                        <th class="px-2 py-1 text-left">NVSwitch</th>
+                                        <th class="px-2 py-1 text-left">InfiniBand</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-stone-600 dark:text-stone-400">
+                                    <tr class="border-t border-stone-200 dark:border-stone-700">
+                                        <td class="px-2 py-1 font-semibold">범위</td>
+                                        <td class="px-2 py-1">노드 내</td>
+                                        <td class="px-2 py-1">노드 간</td>
+                                    </tr>
+                                    <tr class="border-t border-stone-200 dark:border-stone-700">
+                                        <td class="px-2 py-1 font-semibold">연결</td>
+                                        <td class="px-2 py-1">GPU ↔ GPU</td>
+                                        <td class="px-2 py-1">서버 ↔ 서버</td>
+                                    </tr>
+                                    <tr class="border-t border-stone-200 dark:border-stone-700">
+                                        <td class="px-2 py-1 font-semibold">프로토콜</td>
+                                        <td class="px-2 py-1">NVLink</td>
+                                        <td class="px-2 py-1">IB Verbs</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3 text-purple-700 dark:text-purple-400">다이어그램</h4>
+                            <!-- InfiniBand Diagram -->
+                            <div class="bg-stone-100 dark:bg-stone-900 rounded-lg p-4">
+                                <!-- Server 1 -->
+                                <div class="border-2 border-blue-300 dark:border-blue-700 rounded-lg p-3 mb-3 bg-blue-50 dark:bg-blue-900/20">
+                                    <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mb-2">Server 1</div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="gpu-box text-white px-2 py-1 rounded text-xs">GPU</div>
+                                        <div class="nvswitch-box text-white px-2 py-1 rounded text-xs">NVSwitch</div>
+                                        <div class="gpu-box text-white px-2 py-1 rounded text-xs">GPU</div>
+                                    </div>
+                                    <div class="flex justify-center mt-2">
+                                        <div class="ib-box text-white px-3 py-1 rounded text-xs">CX7 NIC</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- InfiniBand connection -->
+                                <div class="flex justify-center items-center gap-2 my-2">
+                                    <div class="w-1 h-8 bg-purple-500 rounded"></div>
+                                    <div class="text-xs text-purple-600 dark:text-purple-400 font-semibold">
+                                        InfiniBand<br/>400 Gb/s
+                                    </div>
+                                    <div class="w-1 h-8 bg-purple-500 rounded"></div>
+                                </div>
+                                
+                                <!-- Server 2 -->
+                                <div class="border-2 border-blue-300 dark:border-blue-700 rounded-lg p-3 bg-blue-50 dark:bg-blue-900/20">
+                                    <div class="flex justify-center mb-2">
+                                        <div class="ib-box text-white px-3 py-1 rounded text-xs">CX7 NIC</div>
+                                    </div>
+                                    <div class="flex items-center justify-between gap-2">
+                                        <div class="gpu-box text-white px-2 py-1 rounded text-xs">GPU</div>
+                                        <div class="nvswitch-box text-white px-2 py-1 rounded text-xs">NVSwitch</div>
+                                        <div class="gpu-box text-white px-2 py-1 rounded text-xs">GPU</div>
+                                    </div>
+                                    <div class="text-xs text-blue-600 dark:text-blue-400 font-semibold mt-2">Server 2</div>
+                                </div>
+                            </div>
+                            <div class="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                                <p class="text-xs text-purple-800 dark:text-purple-300">
+                                    <strong>💡 비유:</strong> InfiniBand는 "KTX/비행기"입니다.
+                                    다른 도시(서버)로 이동할 때 사용합니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CX7 Bridge 설명 -->
+                    <div class="mt-6 pt-6 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-4 text-purple-700 dark:text-purple-400">🔗 CX7 Bridge란?</h4>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-800">
+                            <p class="text-sm text-stone-700 dark:text-stone-300 mb-3">
+                                B200에서 <strong>CX7 Bridge</strong>는 InfiniBand 장치이지만, 
+                                <strong>네트워크 용도가 아니라 NVSwitch 제어용</strong>으로 사용됩니다.
+                            </p>
+                            <!-- CX7 Bridge Diagram -->
+                            <div class="bg-white dark:bg-stone-800 rounded-lg p-4 mb-3">
+                                <div class="flex items-center justify-center gap-2 flex-wrap">
+                                    <div class="bg-teal-500 text-white px-3 py-2 rounded text-xs text-center">
+                                        <div class="font-bold">Fabric Manager</div>
+                                    </div>
+                                    <div class="text-stone-400">→</div>
+                                    <div class="ib-box text-white px-3 py-2 rounded text-xs text-center">
+                                        <div class="font-bold">CX7 Bridge</div>
+                                        <div class="text-xs opacity-80">InfiniBand</div>
+                                    </div>
+                                    <div class="text-stone-400">→</div>
+                                    <div class="nvswitch-box text-white px-3 py-2 rounded text-xs text-center">
+                                        <div class="font-bold">NVSwitch</div>
+                                        <div class="text-xs opacity-80">제어</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-amber-800 dark:text-amber-300">
+                                <strong>⚠️ 따라서:</strong> B200에서는 네트워킹을 안 해도 
+                                InfiniBand 라이브러리(<code class="bg-amber-100 dark:bg-amber-900 px-1 rounded">libibumad</code>)가 필요합니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Configurations -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">🖥️ 시스템 구성별 레이어</h2>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="bg-stone-100 dark:bg-stone-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left">시스템</th>
+                            <th class="px-4 py-3 text-center">PCIe</th>
+                            <th class="px-4 py-3 text-center">NVLink</th>
+                            <th class="px-4 py-3 text-center">NVSwitch</th>
+                            <th class="px-4 py-3 text-center">InfiniBand</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">단일 GPU (PCIe)</div>
+                                <div class="text-xs text-stone-500">RTX 4090, A10, T4</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-green-600">✅</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">멀티 GPU (PCIe)</div>
+                                <div class="text-xs text-stone-500">A100 PCIe x4</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-green-600">✅</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                            <td class="px-4 py-3 text-center text-stone-400">-</td>
+                        </tr>
+                        <tr class="bg-blue-50 dark:bg-blue-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">HGX H200</div>
+                                <div class="text-xs text-stone-500">8× H200 + NVSwitch</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-green-600">✅</td>
+                            <td class="px-4 py-3 text-center text-blue-600">✅</td>
+                            <td class="px-4 py-3 text-center text-orange-600">✅</td>
+                            <td class="px-4 py-3 text-center text-stone-400">선택</td>
+                        </tr>
+                        <tr class="bg-purple-50 dark:bg-purple-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">HGX B200</div>
+                                <div class="text-xs text-stone-500">8× B200 + NVSwitch</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-green-600">✅</td>
+                            <td class="px-4 py-3 text-center text-blue-600">✅</td>
+                            <td class="px-4 py-3 text-center text-orange-600">✅</td>
+                            <td class="px-4 py-3 text-center text-purple-600">✅*</td>
+                        </tr>
+                        <tr class="bg-amber-50 dark:bg-amber-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">Multi-Node 클러스터</div>
+                                <div class="text-xs text-stone-500">HGX × 여러 대</div>
+                            </td>
+                            <td class="px-4 py-3 text-center text-green-600">✅</td>
+                            <td class="px-4 py-3 text-center text-blue-600">✅</td>
+                            <td class="px-4 py-3 text-center text-orange-600">✅</td>
+                            <td class="px-4 py-3 text-center text-purple-600">✅</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="text-xs text-stone-500 mt-2">
+                * B200은 CX7 Bridge가 InfiniBand 프로토콜을 사용하므로, 네트워킹 목적이 아니어도 InfiniBand 라이브러리 필요
+            </p>
+        </section>
+
+        <!-- Software Layer Preview -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📦 소프트웨어 레이어 (미리보기)</h2>
+            <div class="bg-stone-50 dark:bg-stone-800 rounded-2xl p-6 border border-stone-200 dark:border-stone-700">
+                <p class="text-sm text-stone-600 dark:text-stone-400 mb-4">
+                    하드웨어 레이어 위에서 동작하는 소프트웨어 스택입니다.
+                </p>
+                <div class="space-y-2">
+                    <div class="bg-white dark:bg-stone-900 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">Application</span>
+                            <span class="text-xs text-stone-500">PyTorch, TensorFlow</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center text-stone-400">↓</div>
+                    <div class="bg-white dark:bg-stone-900 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">CUDA Runtime</span>
+                            <span class="text-xs text-stone-500">libcudart.so</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center text-stone-400">↓</div>
+                    <div class="bg-white dark:bg-stone-900 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold">CUDA Driver</span>
+                            <span class="text-xs text-stone-500">libcuda.so (nvidia-driver 포함)</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-center text-stone-400">↓</div>
+                    <div class="bg-teal-100 dark:bg-teal-900/30 rounded-lg p-3 border-2 border-teal-300 dark:border-teal-700">
+                        <div class="flex items-center justify-between">
+                            <span class="font-semibold text-teal-800 dark:text-teal-300">Hardware Layer</span>
+                            <span class="text-xs text-teal-600 dark:text-teal-400">PCIe / NVLink / NVSwitch</span>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-xs text-stone-500 mt-4 text-center">
+                    자세한 소프트웨어 레이어 설명은 추후 업데이트 예정
+                </p>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">📚 참고 문서</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <a href="https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/" target="_blank" 
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">NVIDIA Fabric Manager Guide →</div>
+                    <div class="text-xs text-stone-500">NVSwitch 관리 공식 문서</div>
+                </a>
+                <a href="https://www.nvidia.com/en-us/data-center/nvlink/" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">NVIDIA NVLink Overview →</div>
+                    <div class="text-xs text-stone-500">NVLink 기술 소개</div>
+                </a>
+                <a href="https://docs.nvidia.com/dgx/dgxb200-user-guide/" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">DGX B200 User Guide →</div>
+                    <div class="text-xs text-stone-500">B200 시스템 공식 가이드</div>
+                </a>
+                <a href="https://www.ubicloud.com/blog/virtualizing-nvidia-hgx-b200-gpus-with-open-source" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">Ubicloud B200 Virtualization →</div>
+                    <div class="text-xs text-stone-500">프로덕션 검증된 VM 설정</div>
+                </a>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-stone-500 dark:text-stone-400">
+        <a href="index.html" class="hover:text-teal-600 dark:hover:text-teal-400">← pkgman 메인으로 돌아가기</a>
+    </footer>
+
+    <script>
+        // Theme toggle
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        initTheme();
+    </script>
+</body>
+</html>
