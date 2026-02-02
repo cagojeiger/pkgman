@@ -38,6 +38,13 @@
         .ib-box {
             background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
         }
+        /* NVSwitch diagram lines - visible in both light and dark mode */
+        .nvswitch-lines line {
+            stroke: #f97316;
+        }
+        .dark .nvswitch-lines line {
+            stroke: #fb923c;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
@@ -455,11 +462,11 @@
                                     </div>
                                     
                                     <!-- Connection lines (simplified with SVG) -->
-                                    <svg class="absolute inset-0 w-full h-full pointer-events-none" style="z-index: -1;">
-                                        <line x1="15%" y1="15%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
-                                        <line x1="85%" y1="15%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
-                                        <line x1="15%" y1="85%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
-                                        <line x1="85%" y1="85%" x2="50%" y2="50%" stroke="#f97316" stroke-width="2" stroke-dasharray="4"/>
+                                    <svg class="absolute inset-0 w-full h-full pointer-events-none nvswitch-lines" style="z-index: -1;">
+                                        <line x1="15%" y1="15%" x2="50%" y2="50%" stroke-width="3" stroke-dasharray="4"/>
+                                        <line x1="85%" y1="15%" x2="50%" y2="50%" stroke-width="3" stroke-dasharray="4"/>
+                                        <line x1="15%" y1="85%" x2="50%" y2="50%" stroke-width="3" stroke-dasharray="4"/>
+                                        <line x1="85%" y1="85%" x2="50%" y2="50%" stroke-width="3" stroke-dasharray="4"/>
                                     </svg>
                                 </div>
                             </div>
