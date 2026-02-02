@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vLLM을 위한 GPU 소프트웨어 스택</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚙️</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['SF Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .layer-card { transition: all 0.3s ease; }
+        .layer-card:hover { transform: translateY(-2px); }
+        .code-block {
+            background: linear-gradient(135deg, #1c1917 0%, #292524 100%);
+        }
+    </style>
+</head>
+<body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
+    <!-- Header -->
+    <header class="bg-stone-100/90 dark:bg-stone-800/90 border-b border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="gpu-hw-architecture.html" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                        ← HW 가이드
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold text-teal-600 dark:text-teal-400">GPU 소프트웨어 스택</h1>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">vLLM 실행을 위한 필수 컴포넌트</p>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                    <span class="dark:hidden">☀️</span>
+                    <span class="hidden dark:inline">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Overview Section -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-800">
+                <h2 class="text-2xl font-bold mb-4">🎯 개요</h2>
+                <p class="text-stone-700 dark:text-stone-300 mb-4">
+                    HGX B200/H200에서 <strong>vLLM</strong>을 실행하려면 하드웨어 레이어 위에 여러 소프트웨어 컴포넌트가 필요합니다.
+                    이 가이드는 각 레이어의 역할과 <code class="bg-stone-200 dark:bg-stone-700 px-1 rounded">nvidia-*tools</code> 패키지와의 관계를 설명합니다.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🖥️</div>
+                        <div class="text-sm font-semibold">Driver</div>
+                        <div class="text-xs text-stone-500">GPU 제어</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔧</div>
+                        <div class="text-sm font-semibold">Management</div>
+                        <div class="text-xs text-stone-500">NVSwitch 관리</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">📡</div>
+                        <div class="text-sm font-semibold">Communication</div>
+                        <div class="text-xs text-stone-500">GPU간 통신</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🚀</div>
+                        <div class="text-sm font-semibold">Application</div>
+                        <div class="text-xs text-stone-500">vLLM</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Stack Diagram -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📊 스택 구조</h2>
+            <div class="bg-stone-50 dark:bg-stone-800 rounded-2xl p-6 border border-stone-200 dark:border-stone-700">
+                <div class="flex gap-4">
+                    <!-- Left: Space labels -->
+                    <div class="hidden md:flex flex-col justify-between text-xs font-semibold py-2" style="width: 80px;">
+                        <div class="text-center">
+                            <div class="bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-2 py-1 rounded-lg mb-1">User</div>
+                            <div class="text-blue-500 dark:text-blue-400">Space</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 px-2 py-1 rounded-lg mb-1">Kernel</div>
+                            <div class="text-red-500 dark:text-red-400">Space</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Right: Stack layers -->
+                    <div class="flex-1 space-y-2">
+                        <!-- User Space Section -->
+                        <div class="bg-blue-50/50 dark:bg-blue-900/10 rounded-xl p-3 border border-blue-200 dark:border-blue-800">
+                            <div class="md:hidden text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2 text-center">👤 User Space</div>
+                            <div class="space-y-2">
+                                <!-- Application Layer -->
+                                <div class="layer-card bg-purple-100 dark:bg-purple-900/30 rounded-xl p-3 border-2 border-purple-300 dark:border-purple-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">🚀</span>
+                                            <div>
+                                                <div class="font-bold text-purple-800 dark:text-purple-300 text-sm">Application</div>
+                                                <div class="text-xs text-purple-600 dark:text-purple-400">vLLM, PyTorch</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                                            <span class="text-xs text-purple-500">pip install</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex justify-center text-stone-400 text-sm">↓</div>
+
+                                <!-- Communication Layer -->
+                                <div class="layer-card bg-blue-100 dark:bg-blue-900/30 rounded-xl p-3 border-2 border-blue-300 dark:border-blue-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">📡</span>
+                                            <div>
+                                                <div class="font-bold text-blue-800 dark:text-blue-300 text-sm">NCCL</div>
+                                                <div class="text-xs text-blue-600 dark:text-blue-400">libnccl.so (Collective Ops)</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                                            <span class="text-xs text-blue-500">PyTorch 포함</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center text-stone-400 text-sm">↓</div>
+
+                                <!-- Runtime Layer -->
+                                <div class="layer-card bg-green-100 dark:bg-green-900/30 rounded-xl p-3 border-2 border-green-300 dark:border-green-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">⚙️</span>
+                                            <div>
+                                                <div class="font-bold text-green-800 dark:text-green-300 text-sm">CUDA Runtime</div>
+                                                <div class="text-xs text-green-600 dark:text-green-400">libcudart.so, cuBLAS, cuDNN</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                                            <span class="text-xs text-green-500">PyTorch 포함</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center text-stone-400 text-sm">↓</div>
+
+                                <!-- Driver API (User Space part) -->
+                                <div class="layer-card bg-amber-100 dark:bg-amber-900/30 rounded-xl p-3 border-2 border-amber-300 dark:border-amber-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">🖥️</span>
+                                            <div>
+                                                <div class="font-bold text-amber-800 dark:text-amber-300 text-sm">CUDA Driver API</div>
+                                                <div class="text-xs text-amber-600 dark:text-amber-400">libcuda.so (Driver와 통신)</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                                            <code class="text-xs bg-amber-200 dark:bg-amber-800 px-1.5 py-0.5 rounded">nvidia-driver</code>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center text-stone-400 text-sm">↓</div>
+
+                                <!-- Management Layer -->
+                                <div class="layer-card bg-orange-100 dark:bg-orange-900/30 rounded-xl p-3 border-2 border-orange-300 dark:border-orange-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">🔧</span>
+                                            <div>
+                                                <div class="font-bold text-orange-800 dark:text-orange-300 text-sm">Fabric Manager</div>
+                                                <div class="text-xs text-orange-600 dark:text-orange-400">nvidia-fabricmanager (데몬), libibumad</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                                            <code class="text-xs bg-orange-200 dark:bg-orange-800 px-1.5 py-0.5 rounded">fabricmanager</code>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Kernel/User Boundary -->
+                        <div class="flex items-center gap-2 py-1">
+                            <div class="flex-1 border-t-2 border-dashed border-red-400 dark:border-red-600"></div>
+                            <span class="text-xs font-semibold text-red-500 dark:text-red-400 px-2">syscall boundary</span>
+                            <div class="flex-1 border-t-2 border-dashed border-red-400 dark:border-red-600"></div>
+                        </div>
+
+                        <!-- Kernel Space Section -->
+                        <div class="bg-red-50/50 dark:bg-red-900/10 rounded-xl p-3 border border-red-200 dark:border-red-800">
+                            <div class="md:hidden text-xs font-semibold text-red-600 dark:text-red-400 mb-2 text-center">🔒 Kernel Space</div>
+                            <div class="space-y-2">
+                                <!-- Kernel Modules -->
+                                <div class="layer-card bg-red-100 dark:bg-red-900/30 rounded-xl p-3 border-2 border-red-300 dark:border-red-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">🔒</span>
+                                            <div>
+                                                <div class="font-bold text-red-800 dark:text-red-300 text-sm">Kernel Modules</div>
+                                                <div class="text-xs text-red-600 dark:text-red-400">nvidia.ko, nvidia-uvm.ko, nvidia-peermem.ko</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 px-2 py-0.5 rounded">Kernel</span>
+                                            <code class="text-xs bg-red-200 dark:bg-red-800 px-1.5 py-0.5 rounded">nvidia-driver</code>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="flex justify-center text-stone-400 text-sm">↓</div>
+
+                                <!-- Hardware Layer -->
+                                <div class="layer-card bg-teal-100 dark:bg-teal-900/30 rounded-xl p-3 border-2 border-teal-300 dark:border-teal-700">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center gap-3">
+                                            <span class="text-xl">🔌</span>
+                                            <div>
+                                                <div class="font-bold text-teal-800 dark:text-teal-300 text-sm">Hardware</div>
+                                                <div class="text-xs text-teal-600 dark:text-teal-400">PCIe / NVLink / NVSwitch</div>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xs bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-400 px-2 py-0.5 rounded">HW</span>
+                                            <a href="gpu-hw-architecture.html" class="text-xs text-teal-600 dark:text-teal-400 hover:underline">HW 가이드 →</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Legend -->
+                <div class="mt-4 pt-4 border-t border-stone-200 dark:border-stone-700 flex flex-wrap gap-4 text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                        <span class="text-stone-500">일반 권한으로 실행</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 px-2 py-0.5 rounded">Kernel</span>
+                        <span class="text-stone-500">커널 모듈 (root 권한 필요)</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="bg-stone-200 dark:bg-stone-700 text-stone-600 dark:text-stone-400 px-2 py-0.5 rounded">HW</span>
+                        <span class="text-stone-500">물리 하드웨어</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Installation Guide (RPM) -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📦 설치 방법 (RHEL/Rocky 9)</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border border-stone-200 dark:border-stone-700 rounded-xl overflow-hidden">
+                    <thead class="bg-stone-100 dark:bg-stone-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">컴포넌트</th>
+                            <th class="px-4 py-3 text-left font-semibold">영역</th>
+                            <th class="px-4 py-3 text-left font-semibold">설치 방법</th>
+                            <th class="px-4 py-3 text-left font-semibold">설치 명령어</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+                        <tr class="bg-purple-50/50 dark:bg-purple-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">vLLM</div>
+                                <div class="text-xs text-stone-500">Application</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded">pip</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">pip install vllm</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-blue-50/50 dark:bg-blue-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">NCCL</div>
+                                <div class="text-xs text-stone-500">libnccl.so</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded">pip (PyTorch)</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">vLLM wheel에 포함</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-green-50/50 dark:bg-green-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">CUDA Runtime</div>
+                                <div class="text-xs text-stone-500">libcudart.so, cuBLAS</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded">pip (PyTorch)</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">vLLM wheel에 포함</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-amber-50/50 dark:bg-amber-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">CUDA Driver API</div>
+                                <div class="text-xs text-stone-500">libcuda.so</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">nvidia-rpmtools</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">./nvidia-rpmtools install 9 nvidia-driver-590-open</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-red-50/50 dark:bg-red-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">Kernel Modules</div>
+                                <div class="text-xs text-stone-500">nvidia.ko, nvidia-uvm.ko</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-red-100 dark:bg-red-900 text-red-600 dark:text-red-400 px-2 py-0.5 rounded">Kernel</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">nvidia-rpmtools</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">nvidia-driver 패키지에 포함</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">Fabric Manager</div>
+                                <div class="text-xs text-stone-500">nvidia-fabricmanager</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">nvidia-rpmtools</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">./nvidia-rpmtools install 9 nvidia-fabricmanager-590</code>
+                            </td>
+                        </tr>
+                        <tr class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">libibumad</div>
+                                <div class="text-xs text-stone-500 text-amber-600">⚠️ B200 전용</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded">User</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">nvidia-rpmtools</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-stone-100 dark:bg-stone-700 px-2 py-1 rounded block">./nvidia-rpmtools install 9 libibumad infiniband-diags</code>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Quick Install Commands -->
+            <div class="mt-6 grid md:grid-cols-2 gap-4">
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
+                    <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-2">H200 설치 (3세대 NVSwitch)</h4>
+                    <div class="bg-stone-900 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto">
+                        <div class="text-stone-500"># 1. nvidia-rpmtools로 드라이버 + FM 설치</div>
+                        <div>sudo ./nvidia-rpmtools install 9 \</div>
+                        <div class="pl-4">nvidia-driver-590-open \</div>
+                        <div class="pl-4">nvidia-fabricmanager-590</div>
+                        <div class="mt-2 text-stone-500"># 2. Fabric Manager 시작</div>
+                        <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+                        <div class="mt-2 text-stone-500"># 3. vLLM 설치 (venv 권장)</div>
+                        <div>pip install vllm</div>
+                    </div>
+                </div>
+                <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-4 border border-purple-200 dark:border-purple-700">
+                    <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-2">B200 설치 (4세대 NVSwitch)</h4>
+                    <div class="bg-stone-900 rounded-lg p-3 text-xs font-mono text-green-400 overflow-x-auto">
+                        <div class="text-stone-500"># 1. nvidia-rpmtools로 드라이버 + FM + IB 라이브러리</div>
+                        <div>sudo ./nvidia-rpmtools install 9 \</div>
+                        <div class="pl-4">nvidia-driver-590-open \</div>
+                        <div class="pl-4">nvidia-fabricmanager-590 \</div>
+                        <div class="pl-4 text-amber-400">libibumad infiniband-diags</div>
+                        <div class="mt-2 text-stone-500"># 2. Fabric Manager 시작</div>
+                        <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+                        <div class="mt-2 text-stone-500"># 3. vLLM 설치 (venv 권장)</div>
+                        <div>pip install vllm</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Installation Legend -->
+            <div class="mt-4 flex flex-wrap gap-4 text-xs">
+                <div class="flex items-center gap-2">
+                    <span class="bg-purple-100 dark:bg-purple-900 text-purple-600 dark:text-purple-400 px-2 py-0.5 rounded">pip</span>
+                    <span class="text-stone-500">Python 패키지 (PyPI)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="bg-teal-100 dark:bg-teal-900 text-teal-600 dark:text-teal-400 px-2 py-0.5 rounded">nvidia-rpmtools</span>
+                    <span class="text-stone-500">에어갭 환경용 RPM 번들</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Driver Layer Detail -->
+        <section class="mb-12">
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-amber-100 dark:bg-amber-900/30 px-6 py-4 border-b border-amber-200 dark:border-amber-700">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <span>🖥️</span> Driver Layer
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Left: Explanation -->
+                        <div>
+                            <h4 class="font-semibold mb-3">역할</h4>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-300">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500">•</span>
+                                    <span>GPU 하드웨어와 직접 통신하는 <strong>커널 모듈</strong></span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500">•</span>
+                                    <span><code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">libcuda.so</code> - Low-level CUDA Driver API</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-amber-500">•</span>
+                                    <span>GPU 메모리 관리, 컨텍스트 생성, 커널 실행</span>
+                                </li>
+                            </ul>
+
+                            <h4 class="font-semibold mt-4 mb-3">커널 모듈</h4>
+                            <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-3 text-sm font-mono">
+                                <div>nvidia.ko - Core GPU driver</div>
+                                <div>nvidia-uvm.ko - Unified Virtual Memory</div>
+                                <div>nvidia-modeset.ko - Display mode setting</div>
+                                <div>nvidia-drm.ko - DRM integration</div>
+                                <div>nvidia-peermem.ko - GPU peer memory</div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Open vs Proprietary -->
+                        <div>
+                            <h4 class="font-semibold mb-3">Open vs Proprietary</h4>
+                            <div class="space-y-3">
+                                <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-3 border border-green-200 dark:border-green-700">
+                                    <div class="font-semibold text-green-800 dark:text-green-300 text-sm">✅ nvidia-driver-open (권장)</div>
+                                    <ul class="text-xs text-green-700 dark:text-green-400 mt-1 space-y-1">
+                                        <li>• Turing 이상 GPU (H100, H200, B200)</li>
+                                        <li>• MIT/GPLv2 듀얼 라이선스</li>
+                                        <li>• Driver 560+ 부터 기본값</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-3 border border-stone-200 dark:border-stone-600">
+                                    <div class="font-semibold text-stone-700 dark:text-stone-300 text-sm">nvidia-driver (Proprietary)</div>
+                                    <ul class="text-xs text-stone-600 dark:text-stone-400 mt-1 space-y-1">
+                                        <li>• Maxwell, Pascal, Volta 필수</li>
+                                        <li>• 최신 GPU에서는 deprecated</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h4 class="font-semibold mt-4 mb-2">nvidia-*tools 패키지</h4>
+                            <code class="text-sm bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-3 py-2 rounded-lg block">
+                                nvidia-driver-590-open
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- Reference -->
+                    <div class="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-2 text-sm">📚 공식 문서</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/" target="_blank" 
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                Driver Installation Guide ↗
+                            </a>
+                            <a href="https://docs.nvidia.com/cuda/cuda-driver-api/" target="_blank"
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                CUDA Driver API ↗
+                            </a>
+                            <a href="https://github.com/NVIDIA/open-gpu-kernel-modules" target="_blank"
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                Open Kernel Modules (GitHub) ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Management Layer Detail -->
+        <section class="mb-12">
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-orange-100 dark:bg-orange-900/30 px-6 py-4 border-b border-orange-200 dark:border-orange-700">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <span>🔧</span> Management Layer
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <!-- Fabric Manager -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                            Fabric Manager
+                        </h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-stone-600 dark:text-stone-300 mb-3">
+                                    NVSwitch 메모리 패브릭을 구성하고 NVLink 연결을 모니터링하는 <strong>데몬 프로세스</strong>입니다.
+                                </p>
+                                <ul class="space-y-1 text-sm text-stone-600 dark:text-stone-300">
+                                    <li>• NVSwitch 라우팅 테이블 설정</li>
+                                    <li>• GPU ↔ NVSwitch NVLink 초기화</li>
+                                    <li>• 패브릭 오류 모니터링</li>
+                                </ul>
+                            </div>
+                            <div class="bg-stone-900 rounded-lg p-4 text-sm font-mono text-green-400">
+                                <div class="text-stone-500"># 서비스 시작</div>
+                                <div>sudo systemctl start nvidia-fabricmanager</div>
+                                <div class="text-stone-500 mt-2"># 상태 확인</div>
+                                <div>sudo systemctl status nvidia-fabricmanager</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- H200 vs B200 -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">H200 vs B200 아키텍처 차이</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
+                                <div class="font-semibold text-blue-800 dark:text-blue-300 mb-2">H200 (3세대 NVSwitch)</div>
+                                <div class="text-sm text-blue-700 dark:text-blue-400">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded text-xs">CPU</span>
+                                        <span>→ PCIe →</span>
+                                        <span class="bg-blue-200 dark:bg-blue-800 px-2 py-1 rounded text-xs">NVSwitch</span>
+                                    </div>
+                                    <ul class="text-xs space-y-1">
+                                        <li>✓ NVSwitch가 PCIe 장치로 보임</li>
+                                        <li>✓ 직접 PCIe 액세스</li>
+                                        <li>✓ Fabric Manager만 필요</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
+                                <div class="font-semibold text-purple-800 dark:text-purple-300 mb-2">B200 (4세대 NVSwitch)</div>
+                                <div class="text-sm text-purple-700 dark:text-purple-400">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded text-xs">CPU</span>
+                                        <span>→ PCIe →</span>
+                                        <span class="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded text-xs">CX7</span>
+                                        <span>→ IB →</span>
+                                        <span class="bg-purple-200 dark:bg-purple-800 px-2 py-1 rounded text-xs">NVSwitch</span>
+                                    </div>
+                                    <ul class="text-xs space-y-1">
+                                        <li>⚠️ NVSwitch가 PCIe에 안 보임</li>
+                                        <li>⚠️ CX7 Bridge 경유 필요</li>
+                                        <li>⚠️ <strong>libibumad 필수</strong></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- libibumad -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3 flex items-center gap-2">
+                            <span class="w-2 h-2 bg-orange-500 rounded-full"></span>
+                            libibumad (B200 전용)
+                        </h4>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+                            <p class="text-sm text-amber-800 dark:text-amber-300 mb-2">
+                                <strong>InfiniBand Userspace Management Datagram</strong> 라이브러리
+                            </p>
+                            <p class="text-sm text-amber-700 dark:text-amber-400 mb-3">
+                                B200의 CX7 Bridge는 InfiniBand MAD 프로토콜로 NVSwitch와 통신합니다.
+                                네트워킹을 하지 않더라도 Fabric Manager가 NVSwitch를 제어하려면 이 라이브러리가 필요합니다.
+                            </p>
+                            <code class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 px-3 py-2 rounded block">
+                                libibumad, infiniband-diags
+                            </code>
+                        </div>
+                    </div>
+
+                    <!-- nvidia-*tools packages -->
+                    <div class="bg-stone-100 dark:bg-stone-700 rounded-lg p-4">
+                        <h4 class="font-semibold mb-2 text-sm">nvidia-*tools 패키지</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <code class="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded">nvidia-fabricmanager-590</code>
+                            <code class="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded">libibumad</code>
+                            <code class="text-xs bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 px-2 py-1 rounded">infiniband-diags</code>
+                        </div>
+                    </div>
+
+                    <!-- Reference -->
+                    <div class="mt-6 pt-4 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-2 text-sm">📚 공식 문서</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/" target="_blank" 
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                Fabric Manager Guide ↗
+                            </a>
+                            <a href="https://github.com/linux-rdma/rdma-core" target="_blank"
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                rdma-core (libibumad) ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Communication Layer Detail -->
+        <section class="mb-12">
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="bg-blue-100 dark:bg-blue-900/30 px-6 py-4 border-b border-blue-200 dark:border-blue-700">
+                    <h3 class="text-xl font-bold flex items-center gap-2">
+                        <span>📡</span> Communication Layer - NCCL
+                    </h3>
+                </div>
+                <div class="p-6">
+                    <div class="grid md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                            <h4 class="font-semibold mb-3">NCCL이란?</h4>
+                            <p class="text-sm text-stone-600 dark:text-stone-300 mb-3">
+                                <strong>NVIDIA Collective Communications Library</strong> - 
+                                Multi-GPU 및 Multi-Node 환경에서 collective 연산을 수행하는 라이브러리입니다.
+                            </p>
+                            <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-300">
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span><strong>AllReduce</strong> - Tensor Parallelism의 핵심</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span><strong>AllGather/ReduceScatter</strong> - 분산 학습</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <span class="text-blue-500">•</span>
+                                    <span><strong>자동 토폴로지 감지</strong> - NVLink 우선 사용</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold mb-3">Transport 선택 우선순위</h4>
+                            <div class="space-y-2">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-green-500 text-white text-xs flex items-center justify-center">1</span>
+                                    <span class="text-sm"><strong>NVLink</strong> - 1.8 TB/s (B200)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-blue-500 text-white text-xs flex items-center justify-center">2</span>
+                                    <span class="text-sm"><strong>PCIe P2P</strong> - ~128 GB/s</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-purple-500 text-white text-xs flex items-center justify-center">3</span>
+                                    <span class="text-sm"><strong>InfiniBand</strong> - 400 Gb/s (노드간)</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-stone-400 text-white text-xs flex items-center justify-center">4</span>
+                                    <span class="text-sm"><strong>Socket</strong> - Fallback</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- vLLM Tensor Parallelism -->
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700 mb-6">
+                        <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-2">vLLM에서의 Tensor Parallelism</h4>
+                        <p class="text-sm text-purple-700 dark:text-purple-400 mb-3">
+                            vLLM은 <code class="bg-purple-200 dark:bg-purple-800 px-1 rounded">--tensor-parallel-size</code>로 
+                            모델을 여러 GPU에 분할합니다. 각 GPU는 weight의 일부만 가지고, 연산 후 NCCL AllReduce로 결과를 동기화합니다.
+                        </p>
+                        <div class="bg-stone-900 rounded-lg p-3 text-sm font-mono text-green-400">
+                            <div class="text-stone-500"># 8x GPU Tensor Parallelism</div>
+                            <div>vllm serve meta-llama/Llama-3-70B \</div>
+                            <div class="pl-4">--tensor-parallel-size 8</div>
+                        </div>
+                    </div>
+
+                    <!-- NCCL Environment Variables -->
+                    <div class="mb-6">
+                        <h4 class="font-semibold mb-3">주요 NCCL 환경변수</h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm">
+                                <thead class="bg-stone-100 dark:bg-stone-700">
+                                    <tr>
+                                        <th class="px-4 py-2 text-left">변수</th>
+                                        <th class="px-4 py-2 text-left">설명</th>
+                                        <th class="px-4 py-2 text-left">예시</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stone-200 dark:divide-stone-600">
+                                    <tr>
+                                        <td class="px-4 py-2 font-mono text-blue-600 dark:text-blue-400">NCCL_DEBUG</td>
+                                        <td class="px-4 py-2">디버그 출력 레벨</td>
+                                        <td class="px-4 py-2 font-mono text-xs">INFO, WARN, TRACE</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 font-mono text-blue-600 dark:text-blue-400">NCCL_P2P_LEVEL</td>
+                                        <td class="px-4 py-2">P2P transport 선택</td>
+                                        <td class="px-4 py-2 font-mono text-xs">NVL, PIX, SYS</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 font-mono text-blue-600 dark:text-blue-400">NCCL_IB_HCA</td>
+                                        <td class="px-4 py-2">InfiniBand 어댑터 선택</td>
+                                        <td class="px-4 py-2 font-mono text-xs">mlx5_0:1,mlx5_1:1</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="px-4 py-2 font-mono text-blue-600 dark:text-blue-400">NCCL_NET_GDR_LEVEL</td>
+                                        <td class="px-4 py-2">GPUDirect RDMA 레벨</td>
+                                        <td class="px-4 py-2 font-mono text-xs">PHB, SYS</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Reference -->
+                    <div class="pt-4 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-2 text-sm">📚 공식 문서</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html" target="_blank" 
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                NCCL User Guide ↗
+                            </a>
+                            <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/env.html" target="_blank"
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                Environment Variables ↗
+                            </a>
+                            <a href="https://github.com/NVIDIA/nccl" target="_blank"
+                               class="text-xs px-3 py-1 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                                NCCL GitHub ↗
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- vLLM Requirements Summary -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📋 vLLM 요구사항 요약</h2>
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 dark:from-green-900/20 dark:to-teal-900/20 rounded-2xl p-6 border border-green-200 dark:border-green-800">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div>
+                        <h4 class="font-semibold mb-3">시스템 요구사항</h4>
+                        <ul class="space-y-2 text-sm text-stone-600 dark:text-stone-300">
+                            <li class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span><strong>CUDA</strong>: 12.8+ (PyTorch wheel 포함)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span><strong>Driver</strong>: 535+ (580 LTS 권장)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span><strong>Compute Capability</strong>: 7.0+ (H200: 9.0)</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span><strong>Python</strong>: 3.10 - 3.13</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span><strong>OS</strong>: Linux</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-3">nvidia-*tools 필수 패키지</h4>
+                        <div class="space-y-2">
+                            <div class="bg-white dark:bg-stone-800 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                                <div class="font-mono text-sm">nvidia-driver-590-open</div>
+                                <div class="text-xs text-stone-500">GPU 드라이버</div>
+                            </div>
+                            <div class="bg-white dark:bg-stone-800 rounded-lg p-3 border border-stone-200 dark:border-stone-700">
+                                <div class="font-mono text-sm">nvidia-fabricmanager-590</div>
+                                <div class="text-xs text-stone-500">NVSwitch 관리 (HGX 필수)</div>
+                            </div>
+                            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-3 border border-amber-200 dark:border-amber-700">
+                                <div class="font-mono text-sm">libibumad + infiniband-diags</div>
+                                <div class="text-xs text-amber-600 dark:text-amber-400">⚠️ B200 전용</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Start Commands -->
+                <div class="mt-6 pt-4 border-t border-green-200 dark:border-green-700">
+                    <h4 class="font-semibold mb-3">빠른 설치 (RHEL/Rocky 9)</h4>
+                    <div class="bg-stone-900 rounded-lg p-4 text-sm font-mono text-green-400 overflow-x-auto">
+                        <div class="text-stone-500"># nvidia-rpmtools로 설치</div>
+                        <div>sudo ./nvidia-rpmtools install 9 \</div>
+                        <div class="pl-4">nvidia-driver-590-open \</div>
+                        <div class="pl-4">nvidia-fabricmanager-590 \</div>
+                        <div class="pl-4">libibumad infiniband-diags  <span class="text-stone-500"># B200만</span></div>
+                        <div class="mt-2 text-stone-500"># Fabric Manager 시작</div>
+                        <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section class="mb-8">
+            <h2 class="text-2xl font-bold mb-4">📚 참고 문서</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <a href="https://docs.vllm.ai/en/stable/" target="_blank" 
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">vLLM Documentation →</div>
+                    <div class="text-xs text-stone-500">공식 vLLM 문서</div>
+                </a>
+                <a href="https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">Driver Installation Guide →</div>
+                    <div class="text-xs text-stone-500">NVIDIA 드라이버 설치</div>
+                </a>
+                <a href="https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">Fabric Manager Guide →</div>
+                    <div class="text-xs text-stone-500">NVSwitch 관리</div>
+                </a>
+                <a href="https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/index.html" target="_blank"
+                   class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 transition-colors">
+                    <div class="font-semibold text-teal-600 dark:text-teal-400">NCCL User Guide →</div>
+                    <div class="text-xs text-stone-500">Multi-GPU 통신</div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <section class="flex justify-between items-center">
+            <a href="gpu-hw-architecture.html" class="px-4 py-2 bg-stone-100 dark:bg-stone-800 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">
+                ← GPU 하드웨어 아키텍처
+            </a>
+            <a href="index.html" class="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors">
+                pkgman 메인 →
+            </a>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 text-center text-sm text-stone-500 dark:text-stone-400">
+        <a href="index.html" class="hover:text-teal-600 dark:hover:text-teal-400">← pkgman 메인으로 돌아가기</a>
+    </footer>
+
+    <script>
+        // Theme toggle
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+
+        initTheme();
+    </script>
+</body>
+</html>
