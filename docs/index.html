@@ -292,12 +292,12 @@ sudo ./nvidia-debtools install ${ver} libibumad infiniband-diags
                     <span class="text-2xl">🖥️</span>
                     <h3 class="font-semibold text-green-800 dark:text-green-300">GPU 가이드</h3>
                 </div>
-                <div class="grid md:grid-cols-2 gap-3">
+                <div class="grid md:grid-cols-3 gap-3">
                     <a href="gpu-sw-stack.html" class="flex items-center gap-3 p-3 bg-white dark:bg-stone-800 border border-green-200 dark:border-green-700 rounded-lg hover:shadow-md transition-shadow group">
                         <span class="text-xl">⚙️</span>
                         <div class="flex-1">
                             <span class="font-medium text-green-800 dark:text-green-300 group-hover:underline">소프트웨어 스택</span>
-                            <p class="text-xs text-green-600 dark:text-green-400 mt-0.5">vLLM 실행에 필요한 드라이버, CUDA, NCCL 구성</p>
+                            <p class="text-xs text-green-600 dark:text-green-400 mt-0.5">드라이버, CUDA, NCCL</p>
                         </div>
                         <span class="text-green-600 dark:text-green-400">→</span>
                     </a>
@@ -305,9 +305,17 @@ sudo ./nvidia-debtools install ${ver} libibumad infiniband-diags
                         <span class="text-xl">🔧</span>
                         <div class="flex-1">
                             <span class="font-medium text-green-800 dark:text-green-300 group-hover:underline">하드웨어 아키텍처</span>
-                            <p class="text-xs text-green-600 dark:text-green-400 mt-0.5">PCIe, NVLink, NVSwitch 계층 구조</p>
+                            <p class="text-xs text-green-600 dark:text-green-400 mt-0.5">PCIe, NVLink, NVSwitch</p>
                         </div>
                         <span class="text-green-600 dark:text-green-400">→</span>
+                    </a>
+                    <a href="gpu-vm-passthrough.html" class="flex items-center gap-3 p-3 bg-white dark:bg-stone-800 border border-amber-200 dark:border-amber-700 rounded-lg hover:shadow-md transition-shadow group">
+                        <span class="text-xl">☁️</span>
+                        <div class="flex-1">
+                            <span class="font-medium text-amber-800 dark:text-amber-300 group-hover:underline">VM Passthrough</span>
+                            <p class="text-xs text-amber-600 dark:text-amber-400 mt-0.5">Host/Guest 역할 분담</p>
+                        </div>
+                        <span class="text-amber-600 dark:text-amber-400">→</span>
                     </a>
                 </div>
             `;
@@ -439,6 +447,14 @@ sudo ./nvidia-debtools install ${ver} libibumad infiniband-diags
                                 <span class="text-xs text-stone-500 dark:text-stone-400 ml-2">NVSwitch, libibumad가 왜 필요한지</span>
                             </div>
                             <span class="text-stone-400 text-sm">→</span>
+                        </a>
+                        <a href="gpu-vm-passthrough.html" class="flex items-center gap-3 p-2 bg-white dark:bg-stone-800 border border-amber-200 dark:border-amber-600 rounded-lg hover:shadow-sm transition-shadow group">
+                            <span class="text-lg">☁️</span>
+                            <div class="flex-1">
+                                <span class="font-medium text-sm text-amber-700 dark:text-amber-300 group-hover:underline">VM Passthrough</span>
+                                <span class="text-xs text-amber-500 dark:text-amber-400 ml-2">Host/Guest 역할 분담</span>
+                            </div>
+                            <span class="text-amber-500 dark:text-amber-400 text-sm">→</span>
                         </a>
                     </div>
                 </div>

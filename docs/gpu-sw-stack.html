@@ -950,6 +950,25 @@
             </div>
         </section>
 
+        <!-- VM Passthrough Guide -->
+        <section class="mb-12">
+            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-700">
+                <div class="flex items-start gap-4">
+                    <span class="text-3xl">☁️</span>
+                    <div class="flex-1">
+                        <h3 class="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2">VM 환경인가요?</h3>
+                        <p class="text-sm text-amber-700 dark:text-amber-400 mb-3">
+                            VM GPU Passthrough 환경에서는 <strong>Host와 Guest의 역할이 다릅니다</strong>.
+                            NVSwitch는 Passthrough할 수 없어서 Host에서 Fabric Manager를 실행하고, Guest에는 드라이버만 설치합니다.
+                        </p>
+                        <a href="gpu-vm-passthrough.html" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                            VM Passthrough 가이드 →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- Navigation -->
         <section class="flex justify-between items-center">
             <a href="gpu-hw-architecture.html" class="px-4 py-2 bg-stone-100 dark:bg-stone-800 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors">
