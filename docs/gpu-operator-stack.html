@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU Operator vs Bare Metal - Kubernetes GPU 배포</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☸️</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['SF Mono', 'Monaco', 'Cascadia Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .layer-card { transition: all 0.3s ease; }
+        .layer-card:hover { transform: translateY(-2px); }
+    </style>
+</head>
+<body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
+    <!-- Header -->
+    <header class="bg-stone-100/90 dark:bg-stone-800/90 border-b border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
+        <div class="max-w-5xl mx-auto">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <a href="gpu-sw-stack.html" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                        ← SW 스택
+                    </a>
+                    <div>
+                        <h1 class="text-xl font-bold text-teal-600 dark:text-teal-400">GPU Operator vs Bare Metal</h1>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">Kubernetes 환경 GPU 배포 비교</p>
+                    </div>
+                </div>
+                <button id="theme-toggle" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
+                    <span class="dark:hidden">☀️</span>
+                    <span class="hidden dark:inline">🌙</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Overview Section -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-sky-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-sky-200 dark:border-sky-800">
+                <h2 class="text-2xl font-bold mb-4">🎯 개요</h2>
+                <p class="text-stone-700 dark:text-stone-300 mb-4">
+                    <strong>NVIDIA GPU Operator</strong>는 Kubernetes에서 GPU 소프트웨어 스택을 자동으로 배포하고 관리합니다.
+                    Bare Metal 설치와 비교하여 어떤 컴포넌트가 컨테이너화되고, <span class="text-amber-600 dark:text-amber-400 font-semibold">에어갭 환경에서 어떤 추가 준비가 필요한지</span> 알아봅니다.
+                </p>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">☸️</div>
+                        <div class="text-sm font-semibold">GPU Operator</div>
+                        <div class="text-xs text-stone-500">Kubernetes 자동화</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">📦</div>
+                        <div class="text-sm font-semibold">Driver Container</div>
+                        <div class="text-xs text-stone-500">컨테이너화된 드라이버</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🌐</div>
+                        <div class="text-sm font-semibold">Runtime 다운로드</div>
+                        <div class="text-xs text-stone-500">커널 헤더 필요</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔒</div>
+                        <div class="text-sm font-semibold">에어갭 대응</div>
+                        <div class="text-xs text-stone-500">사전 준비 필요</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Comparison Table -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📊 Bare Metal vs GPU Operator 비교</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border border-stone-200 dark:border-stone-700 rounded-xl overflow-hidden">
+                    <thead class="bg-stone-100 dark:bg-stone-800">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">컴포넌트</th>
+                            <th class="px-4 py-3 text-left font-semibold">Bare Metal</th>
+                            <th class="px-4 py-3 text-left font-semibold">GPU Operator</th>
+                            <th class="px-4 py-3 text-left font-semibold">인터넷 필요</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+                        <tr class="bg-amber-50/50 dark:bg-amber-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">NVIDIA Driver</div>
+                                <div class="text-xs text-stone-500">nvidia.ko, libcuda.so</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded">nvidia-rpmtools</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 px-2 py-0.5 rounded">driver container</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-amber-600 dark:text-amber-400 font-semibold">Runtime*</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">Fabric Manager</div>
+                                <div class="text-xs text-stone-500">NVSwitch 관리 데몬</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded">nvidia-rpmtools</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">이미지에 포함</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-green-600 dark:text-green-400">No</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">nvlsm</div>
+                                <div class="text-xs text-stone-500">NVLink Subnet Manager</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded">nvidia-rpmtools</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">이미지에 포함</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-green-600 dark:text-green-400">No</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-orange-50/50 dark:bg-orange-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">infiniband-diags</div>
+                                <div class="text-xs text-stone-500">IB 진단 도구</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded">nvidia-rpmtools</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 px-2 py-0.5 rounded">이미지에 포함</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-green-600 dark:text-green-400">No</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-red-50/50 dark:bg-red-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">linux-headers</div>
+                                <div class="text-xs text-stone-500">커널 헤더 (드라이버 빌드용)</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs text-stone-500">사전 설치 또는 dnf</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 px-2 py-0.5 rounded">apt-get (런타임)</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-red-600 dark:text-red-400 font-semibold">Yes**</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-purple-50/50 dark:bg-purple-900/10">
+                            <td class="px-4 py-3">
+                                <div class="font-semibold">libibumad / MOFED</div>
+                                <div class="text-xs text-amber-600 dark:text-amber-400">B200 HGX 필수</div>
+                            </td>
+                            <td class="px-4 py-3">
+                                <code class="text-xs bg-teal-100 dark:bg-teal-900 text-teal-700 dark:text-teal-300 px-2 py-0.5 rounded">nvidia-rpmtools</code>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-xs bg-amber-100 dark:bg-amber-900 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded">Host에 사전 설치</span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <span class="text-amber-600 dark:text-amber-400 font-semibold">Host 의존</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-4 space-y-2 text-sm text-stone-600 dark:text-stone-400">
+                <p><span class="font-semibold text-amber-600 dark:text-amber-400">*Runtime 다운로드</span>: Driver Container는 시작 시 <code class="bg-stone-100 dark:bg-stone-700 px-1 rounded">apt-get install linux-headers-$(uname -r)</code>를 실행합니다. 커널 버전이 노드마다 다를 수 있어 이미지에 포함 불가.</p>
+                <p><span class="font-semibold text-red-600 dark:text-red-400">**에어갭 환경</span>: Precompiled Driver Container 또는 로컬 패키지 미러로 해결 가능.</p>
+            </div>
+        </section>
+
+        <!-- GPU Operator Components -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">☸️ GPU Operator 배포 컴포넌트</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">📦</span>
+                        <div>
+                            <div class="font-bold">nvidia-driver-daemonset</div>
+                            <div class="text-xs text-stone-500">DaemonSet</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        NVIDIA Driver를 컨테이너로 배포. 커널 모듈을 호스트에 로드합니다.
+                    </p>
+                    <div class="text-xs bg-stone-100 dark:bg-stone-700 rounded p-2 font-mono">
+                        nvcr.io/nvidia/driver:560.35.03-ubuntu22.04
+                    </div>
+                </div>
+
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">🔧</span>
+                        <div>
+                            <div class="font-bold">nvidia-container-toolkit</div>
+                            <div class="text-xs text-stone-500">DaemonSet</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        컨테이너 런타임(containerd/docker)에 GPU 지원을 추가합니다.
+                    </p>
+                    <div class="text-xs bg-stone-100 dark:bg-stone-700 rounded p-2 font-mono">
+                        nvcr.io/nvidia/k8s/container-toolkit:...
+                    </div>
+                </div>
+
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">🔌</span>
+                        <div>
+                            <div class="font-bold">nvidia-device-plugin</div>
+                            <div class="text-xs text-stone-500">DaemonSet</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        Kubernetes에 <code class="bg-stone-200 dark:bg-stone-600 px-1 rounded">nvidia.com/gpu</code> 리소스를 노출합니다.
+                    </p>
+                    <div class="text-xs bg-stone-100 dark:bg-stone-700 rounded p-2 font-mono">
+                        nvcr.io/nvidia/k8s-device-plugin:...
+                    </div>
+                </div>
+
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">📊</span>
+                        <div>
+                            <div class="font-bold">dcgm-exporter</div>
+                            <div class="text-xs text-stone-500">DaemonSet</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        GPU 메트릭을 Prometheus 형식으로 노출합니다.
+                    </p>
+                    <div class="text-xs bg-stone-100 dark:bg-stone-700 rounded p-2 font-mono">
+                        nvcr.io/nvidia/k8s/dcgm-exporter:...
+                    </div>
+                </div>
+
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-orange-200 dark:border-orange-700 border-2">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">🔗</span>
+                        <div>
+                            <div class="font-bold text-orange-700 dark:text-orange-300">nvidia-fabricmanager</div>
+                            <div class="text-xs text-orange-500">DaemonSet (HGX only)</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        NVSwitch 메모리 패브릭을 관리합니다. HGX B200/H200 필수.
+                    </p>
+                    <div class="text-xs bg-orange-100 dark:bg-orange-900/30 rounded p-2 font-mono text-orange-700 dark:text-orange-300">
+                        Driver container 이미지에 포함
+                    </div>
+                </div>
+
+                <div class="layer-card bg-white dark:bg-stone-800 rounded-xl p-5 border border-stone-200 dark:border-stone-700">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="text-2xl">🏷️</span>
+                        <div>
+                            <div class="font-bold">gpu-feature-discovery</div>
+                            <div class="text-xs text-stone-500">DaemonSet</div>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 dark:text-stone-400 mb-3">
+                        GPU 정보를 노드 라벨로 추가합니다 (GPU 모델, 메모리 등).
+                    </p>
+                    <div class="text-xs bg-stone-100 dark:bg-stone-700 rounded p-2 font-mono">
+                        nvcr.io/nvidia/k8s/gpu-feature-discovery:...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Air-gap Considerations -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">🔒 에어갭 환경 대응</h2>
+            
+            <!-- Internet Dependency -->
+            <div class="bg-red-50 dark:bg-red-900/20 rounded-xl p-6 border border-red-200 dark:border-red-700 mb-6">
+                <h3 class="text-lg font-bold text-red-800 dark:text-red-300 mb-4">⚠️ 런타임 인터넷 의존성</h3>
+                <p class="text-sm text-red-700 dark:text-red-400 mb-4">
+                    GPU Operator의 Driver Container는 시작 시 <strong>커널 헤더 패키지를 다운로드</strong>합니다.
+                    이는 커널 버전이 노드마다 다를 수 있기 때문에 이미지에 포함할 수 없기 때문입니다.
+                </p>
+                <div class="bg-stone-900 rounded-lg p-4 text-sm font-mono text-red-400 overflow-x-auto">
+                    <div class="text-stone-500"># Driver Container 시작 시 실행되는 명령:</div>
+                    <div>apt-get update</div>
+                    <div>apt-get install -y linux-headers-${KERNEL_VERSION}</div>
+                    <div>apt-get install -y linux-image-${KERNEL_VERSION}</div>
+                    <div>apt-get install -y linux-modules-${KERNEL_VERSION}</div>
+                </div>
+            </div>
+
+            <!-- Solutions -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-5 border border-green-200 dark:border-green-700">
+                    <h4 class="font-bold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
+                        <span>✅</span> 방법 1: Precompiled Driver Container (권장)
+                    </h4>
+                    <p class="text-sm text-green-700 dark:text-green-400 mb-3">
+                        NVIDIA는 특정 커널 버전용으로 미리 컴파일된 드라이버 컨테이너를 제공합니다.
+                        런타임에 패키지 다운로드가 필요 없습니다.
+                    </p>
+                    <div class="bg-stone-900 rounded-lg p-3 text-xs font-mono text-green-400">
+                        <div class="text-stone-500"># Ubuntu 22.04, 커널 5.15.0-100-generic</div>
+                        <div>nvcr.io/nvidia/driver:560-5.15.0-100-generic-ubuntu22.04</div>
+                    </div>
+                    <p class="text-xs text-green-600 dark:text-green-500 mt-2">
+                        단점: 커널 업그레이드 시 새 이미지 필요
+                    </p>
+                </div>
+
+                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-200 dark:border-blue-700">
+                    <h4 class="font-bold text-blue-800 dark:text-blue-300 mb-3 flex items-center gap-2">
+                        <span>🔄</span> 방법 2: 로컬 패키지 미러
+                    </h4>
+                    <p class="text-sm text-blue-700 dark:text-blue-400 mb-3">
+                        내부 apt/yum 미러 서버를 구축하고, Driver Container가 로컬 미러를 사용하도록 설정합니다.
+                    </p>
+                    <div class="bg-stone-900 rounded-lg p-3 text-xs font-mono text-blue-400">
+                        <div class="text-stone-500"># ClusterPolicy 설정</div>
+                        <div>driver:</div>
+                        <div class="pl-2">repository: "local-registry.example.com"</div>
+                        <div class="pl-2">env:</div>
+                        <div class="pl-4">- name: APT_MIRROR_URL</div>
+                        <div class="pl-6">value: "http://mirror.internal/ubuntu"</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- B200 HGX Special Requirements -->
+        <section class="mb-12">
+            <div class="bg-gradient-to-r from-purple-50 to-amber-50 dark:from-purple-900/20 dark:to-amber-900/20 rounded-2xl p-6 border border-purple-200 dark:border-purple-700">
+                <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+                    <span>⚠️</span> B200 HGX 특별 요구사항
+                </h2>
+                <p class="text-stone-700 dark:text-stone-300 mb-4">
+                    B200 HGX (4세대 NVSwitch)는 CX7 Bridge를 통해 NVSwitch와 통신합니다.
+                    이를 위해 <strong>libibumad와 MOFED/OFED</strong>가 <span class="text-amber-600 dark:text-amber-400 font-semibold">Host OS에 사전 설치</span>되어야 합니다.
+                </p>
+                
+                <div class="bg-amber-100 dark:bg-amber-900/30 rounded-lg p-4 mb-4 border border-amber-300 dark:border-amber-700">
+                    <h4 class="font-semibold text-amber-800 dark:text-amber-300 mb-2">GPU Operator가 관리하지 않는 패키지:</h4>
+                    <div class="flex flex-wrap gap-2">
+                        <code class="text-sm bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-3 py-1 rounded">libibumad</code>
+                        <code class="text-sm bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-3 py-1 rounded">infiniband-diags</code>
+                        <code class="text-sm bg-amber-200 dark:bg-amber-800 text-amber-800 dark:text-amber-200 px-3 py-1 rounded">MOFED/OFED</code>
+                    </div>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div class="bg-stone-900 rounded-lg p-4">
+                        <div class="text-xs text-stone-400 mb-2">RHEL/Rocky 9 (Host에서 실행)</div>
+                        <div class="text-sm font-mono text-green-400">
+                            <div class="text-stone-500"># nvidia-rpmtools 사용</div>
+                            <div>sudo ./nvidia-rpmtools install 9 \</div>
+                            <div class="pl-4">libibumad \</div>
+                            <div class="pl-4">infiniband-diags</div>
+                        </div>
+                    </div>
+                    <div class="bg-stone-900 rounded-lg p-4">
+                        <div class="text-xs text-stone-400 mb-2">Ubuntu 22.04 (Host에서 실행)</div>
+                        <div class="text-sm font-mono text-green-400">
+                            <div class="text-stone-500"># nvidia-debtools 사용</div>
+                            <div>sudo ./nvidia-debtools install 22.04 \</div>
+                            <div class="pl-4">libibumad \</div>
+                            <div class="pl-4">infiniband-diags</div>
+                        </div>
+                    </div>
+                </div>
+
+                <p class="text-sm text-stone-600 dark:text-stone-400 mt-4">
+                    <strong>이유:</strong> GPU Operator의 Driver Container는 InfiniBand userspace library에 대한 의존성이 없습니다.
+                    B200의 Fabric Manager가 NVSwitch와 통신하려면 Host에 <code class="bg-stone-200 dark:bg-stone-700 px-1 rounded">/dev/infiniband/umadX</code> 디바이스가 필요합니다.
+                </p>
+            </div>
+        </section>
+
+        <!-- Quick Reference -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">📋 빠른 참조</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Bare Metal Flow -->
+                <div class="bg-teal-50 dark:bg-teal-900/20 rounded-xl p-5 border border-teal-200 dark:border-teal-700">
+                    <h3 class="font-bold text-teal-800 dark:text-teal-300 mb-4">Bare Metal (에어갭 친화적)</h3>
+                    <ol class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0">1</span>
+                            <span>인터넷 PC에서 nvidia-rpmtools/debtools 번들 다운로드</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0">2</span>
+                            <span>USB로 폐쇄망 반입</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0">3</span>
+                            <span><code class="bg-teal-200 dark:bg-teal-800 px-1 rounded">./nvidia-rpmtools install</code> 실행</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-teal-500 text-white text-xs flex items-center justify-center flex-shrink-0">4</span>
+                            <span>재부팅 없이 즉시 사용 가능</span>
+                        </li>
+                    </ol>
+                </div>
+
+                <!-- GPU Operator Flow -->
+                <div class="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-5 border border-sky-200 dark:border-sky-700">
+                    <h3 class="font-bold text-sky-800 dark:text-sky-300 mb-4">GPU Operator (Kubernetes 자동화)</h3>
+                    <ol class="space-y-3 text-sm">
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs flex items-center justify-center flex-shrink-0">1</span>
+                            <span>Container 이미지를 내부 레지스트리에 미러</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs flex items-center justify-center flex-shrink-0">2</span>
+                            <span>B200: Host에 libibumad 사전 설치</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs flex items-center justify-center flex-shrink-0">3</span>
+                            <span>Precompiled Driver Container 또는 패키지 미러 구성</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="w-6 h-6 rounded-full bg-sky-500 text-white text-xs flex items-center justify-center flex-shrink-0">4</span>
+                            <span>Helm으로 GPU Operator 설치</span>
+                        </li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <section class="mb-8">
+            <div class="bg-stone-100 dark:bg-stone-800 rounded-xl p-6 border border-stone-200 dark:border-stone-700">
+                <h3 class="font-semibold mb-4">관련 문서</h3>
+                <div class="grid md:grid-cols-3 gap-3">
+                    <a href="gpu-sw-stack.html" class="flex items-center gap-3 p-3 bg-white dark:bg-stone-700 rounded-lg hover:shadow-md transition-shadow group">
+                        <span class="text-xl">⚙️</span>
+                        <div>
+                            <span class="font-medium group-hover:underline">소프트웨어 스택</span>
+                            <p class="text-xs text-stone-500 dark:text-stone-400">Bare Metal 설치</p>
+                        </div>
+                    </a>
+                    <a href="gpu-hw-architecture.html" class="flex items-center gap-3 p-3 bg-white dark:bg-stone-700 rounded-lg hover:shadow-md transition-shadow group">
+                        <span class="text-xl">🔧</span>
+                        <div>
+                            <span class="font-medium group-hover:underline">하드웨어 아키텍처</span>
+                            <p class="text-xs text-stone-500 dark:text-stone-400">NVSwitch, PCIe 토폴로지</p>
+                        </div>
+                    </a>
+                    <a href="gpu-vm-passthrough.html" class="flex items-center gap-3 p-3 bg-white dark:bg-stone-700 rounded-lg hover:shadow-md transition-shadow group">
+                        <span class="text-xl">☁️</span>
+                        <div>
+                            <span class="font-medium group-hover:underline">VM Passthrough</span>
+                            <p class="text-xs text-stone-500 dark:text-stone-400">Host/Guest 역할 분담</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- References -->
+        <section>
+            <h2 class="text-lg font-bold mb-4">📚 참고 자료</h2>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/overview.html" target="_blank" 
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    GPU Operator Documentation ↗
+                </a>
+                <a href="https://catalog.ngc.nvidia.com/orgs/nvidia/containers/driver" target="_blank"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    Driver Container (NGC) ↗
+                </a>
+                <a href="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/install-gpu-operator-air-gapped.html" target="_blank"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    Air-Gapped Installation Guide ↗
+                </a>
+                <a href="https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/" target="_blank"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    Fabric Manager Guide ↗
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4">
+        <div class="max-w-5xl mx-auto flex justify-between items-center text-sm text-stone-500 dark:text-stone-400">
+            <a href="index.html" class="hover:text-teal-600 dark:hover:text-teal-400">← pkgman 홈</a>
+            <span>GPU Operator vs Bare Metal Guide</span>
+        </div>
+    </footer>
+
+    <script>
+        // Theme toggle
+        function initTheme() {
+            if (localStorage.theme === 'dark' || (!localStorage.theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            }
+        }
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            document.documentElement.classList.toggle('dark');
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+        });
+        initTheme();
+    </script>
+</body>
+</html>

@@ -950,20 +950,41 @@
             </div>
         </section>
 
-        <!-- VM Passthrough Guide -->
+        <!-- Related Guides -->
         <section class="mb-12">
-            <div class="bg-amber-50 dark:bg-amber-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-700">
-                <div class="flex items-start gap-4">
-                    <span class="text-3xl">☁️</span>
-                    <div class="flex-1">
-                        <h3 class="text-lg font-bold text-amber-800 dark:text-amber-300 mb-2">VM 환경인가요?</h3>
-                        <p class="text-sm text-amber-700 dark:text-amber-400 mb-3">
-                            VM GPU Passthrough 환경에서는 <strong>Host와 Guest의 역할이 다릅니다</strong>.
-                            NVSwitch는 Passthrough할 수 없어서 Host에서 Fabric Manager를 실행하고, Guest에는 드라이버만 설치합니다.
-                        </p>
-                        <a href="gpu-vm-passthrough.html" class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
-                            VM Passthrough 가이드 →
-                        </a>
+            <h2 class="text-2xl font-bold mb-6">🔗 관련 가이드</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <!-- VM Passthrough Guide -->
+                <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-5 border border-amber-200 dark:border-amber-700">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">☁️</span>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-amber-800 dark:text-amber-300 mb-2">VM 환경인가요?</h3>
+                            <p class="text-sm text-amber-700 dark:text-amber-400 mb-3">
+                                VM GPU Passthrough 환경에서는 Host와 Guest의 역할이 다릅니다.
+                                NVSwitch는 Passthrough할 수 없어 Host에서 Fabric Manager를 실행합니다.
+                            </p>
+                            <a href="gpu-vm-passthrough.html" class="inline-flex items-center gap-2 px-3 py-1.5 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors text-sm font-semibold">
+                                VM Passthrough 가이드 →
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GPU Operator Guide -->
+                <div class="bg-sky-50 dark:bg-sky-900/20 rounded-xl p-5 border border-sky-200 dark:border-sky-700">
+                    <div class="flex items-start gap-3">
+                        <span class="text-2xl">☸️</span>
+                        <div class="flex-1">
+                            <h3 class="font-bold text-sky-800 dark:text-sky-300 mb-2">Kubernetes 환경인가요?</h3>
+                            <p class="text-sm text-sky-700 dark:text-sky-400 mb-3">
+                                GPU Operator를 사용하면 Kubernetes에서 GPU 스택을 자동으로 배포합니다.
+                                에어갭 환경에서의 추가 준비 사항을 확인하세요.
+                            </p>
+                            <a href="gpu-operator-stack.html" class="inline-flex items-center gap-2 px-3 py-1.5 bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors text-sm font-semibold">
+                                GPU Operator 가이드 →
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
