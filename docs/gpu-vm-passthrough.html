@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GPU VM Passthrough 가이드</title>
+    <title>B200 VM Passthrough 가이드</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🖥️</text></svg>">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -27,7 +27,6 @@
     </style>
 </head>
 <body class="bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 min-h-screen flex flex-col transition-colors">
-    <!-- Header -->
     <header class="bg-stone-100/90 dark:bg-stone-800/90 border-b border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-4 sticky top-0 z-10 backdrop-blur-sm">
         <div class="max-w-5xl mx-auto">
             <div class="flex items-center justify-between">
@@ -36,8 +35,8 @@
                         ← SW 스택
                     </a>
                     <div>
-                        <h1 class="text-xl font-bold text-teal-600 dark:text-teal-400">VM Passthrough 가이드</h1>
-                        <p class="text-xs text-stone-500 dark:text-stone-400">왜 VM 환경이 다른가?</p>
+                        <h1 class="text-xl font-bold text-teal-600 dark:text-teal-400">B200 VM Passthrough</h1>
+                        <p class="text-xs text-stone-500 dark:text-stone-400">PCI Passthrough 개념과 가상화 모델</p>
                     </div>
                 </div>
                 <button id="theme-toggle" class="p-2 rounded-lg hover:bg-stone-200 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300">
@@ -48,264 +47,425 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         
-        <!-- Prerequisites Notice -->
-        <section class="mb-8">
-            <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700">
-                <div class="flex items-start gap-3">
-                    <span class="text-xl">📚</span>
-                    <div>
-                        <h3 class="font-semibold text-blue-800 dark:text-blue-300 mb-1">이 가이드를 읽기 전에</h3>
-                        <p class="text-sm text-blue-700 dark:text-blue-400">
-                            이 문서는 <a href="gpu-hw-architecture.html" class="underline hover:no-underline">HW 아키텍처</a>와 
-                            <a href="gpu-sw-stack.html" class="underline hover:no-underline">SW 스택</a> 가이드를 읽은 독자를 대상으로 합니다.
-                            NVSwitch, Fabric Manager, libibumad의 역할을 이해하고 있다고 가정합니다.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Overview Section -->
+        <!-- Overview -->
         <section class="mb-12">
-            <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-6 border border-amber-200 dark:border-amber-800">
-                <h2 class="text-2xl font-bold mb-4">🎯 VM이 Bare Metal과 다른 이유</h2>
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 border border-blue-200 dark:border-blue-800">
+                <h2 class="text-2xl font-bold mb-4">🎯 이 문서의 목적</h2>
                 <p class="text-stone-700 dark:text-stone-300 mb-4">
-                    VM 환경에서는 <strong>NVSwitch가 Guest에 보이지 않습니다</strong>.
-                    GPU는 PCIe 장치라 Passthrough가 가능하지만, NVSwitch는 그렇지 않기 때문입니다.
+                    B200 HGX 환경에서 VM에 GPU를 할당하려면 <strong>PCI Passthrough</strong> 개념을 이해해야 합니다.
+                    이 문서는 Passthrough의 기본 개념부터 B200에서 가능한 두 가지 가상화 모델까지 설명합니다.
                 </p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="bg-white dark:bg-stone-800 rounded-lg p-4 border border-stone-200 dark:border-stone-700">
-                        <div class="text-2xl mb-2">🔌</div>
-                        <div class="font-semibold text-green-700 dark:text-green-400">GPU</div>
-                        <div class="text-sm text-stone-600 dark:text-stone-400">PCIe 장치</div>
-                        <div class="text-xs mt-1 text-green-600 dark:text-green-500">✅ Passthrough 가능</div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">📁</div>
+                        <div class="text-sm font-semibold">/dev/ 장치</div>
+                        <div class="text-xs text-stone-500">장치 파일 개념</div>
                     </div>
-                    <div class="bg-white dark:bg-stone-800 rounded-lg p-4 border border-stone-200 dark:border-stone-700">
-                        <div class="text-2xl mb-2">🔀</div>
-                        <div class="font-semibold text-orange-700 dark:text-orange-400">NVSwitch</div>
-                        <div class="text-sm text-stone-600 dark:text-stone-400">PCIe 아님 (B200)</div>
-                        <div class="text-xs mt-1 text-red-600 dark:text-red-500">❌ Passthrough 불가</div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔒</div>
+                        <div class="text-sm font-semibold">IOMMU</div>
+                        <div class="text-xs text-stone-500">메모리 격리</div>
                     </div>
-                    <div class="bg-white dark:bg-stone-800 rounded-lg p-4 border border-stone-200 dark:border-stone-700">
-                        <div class="text-2xl mb-2">🌉</div>
-                        <div class="font-semibold text-purple-700 dark:text-purple-400">CX7 Bridge</div>
-                        <div class="text-sm text-stone-600 dark:text-stone-400">/dev/infiniband/*</div>
-                        <div class="text-xs mt-1 text-red-600 dark:text-red-500">❌ Passthrough 불가</div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">🔌</div>
+                        <div class="text-sm font-semibold">VFIO</div>
+                        <div class="text-xs text-stone-500">Passthrough 프레임워크</div>
+                    </div>
+                    <div class="bg-white dark:bg-stone-800 rounded-lg p-3 text-center border border-stone-200 dark:border-stone-700">
+                        <div class="text-2xl mb-1">☁️</div>
+                        <div class="text-sm font-semibold">가상화 모델</div>
+                        <div class="text-xs text-stone-500">Host FM vs Service VM</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Why Different Section -->
+        <!-- Section 1: Device Files -->
         <section class="mb-12">
-            <h2 class="text-2xl font-bold mb-6">🔍 HW 관점: 왜 NVSwitch를 넘길 수 없는가?</h2>
+            <h2 class="text-2xl font-bold mb-6">1️⃣ 장치 파일 개념 (/dev/)</h2>
             
             <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
                 <div class="p-6">
-                    <!-- Bare Metal vs VM Comparison -->
-                    <div class="grid md:grid-cols-2 gap-6 mb-6">
-                        <!-- Bare Metal -->
-                        <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-4 border border-green-200 dark:border-green-700">
-                            <h4 class="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
-                                <span>🖥️</span> Bare Metal
-                            </h4>
-                            <div class="bg-white dark:bg-stone-800 rounded-lg p-4 mb-3">
-                                <div class="flex items-center justify-center gap-2 flex-wrap text-xs">
-                                    <div class="bg-blue-500 text-white px-3 py-2 rounded font-semibold">CPU</div>
-                                    <div class="text-stone-400">→</div>
-                                    <div class="bg-purple-500 text-white px-3 py-2 rounded font-semibold">CX7</div>
-                                    <div class="text-stone-400">→</div>
-                                    <div class="bg-orange-500 text-white px-3 py-2 rounded font-semibold">NVSwitch</div>
-                                    <div class="text-stone-400">↔</div>
-                                    <div class="bg-green-500 text-white px-3 py-2 rounded font-semibold">GPU</div>
-                                </div>
+                    <p class="text-stone-700 dark:text-stone-300 mb-4">
+                        Linux에서는 <strong>"Everything is a File"</strong> 철학에 따라 모든 하드웨어 장치를 파일처럼 관리합니다.
+                        프로그램이 장치를 사용하려면 해당 장치 파일을 열어서 읽기/쓰기를 합니다.
+                    </p>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-stone-50 dark:bg-stone-900 rounded-xl p-4">
+                            <h4 class="font-semibold mb-3">장치 파일 예시</h4>
+                            <div class="bg-stone-800 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># ls /dev/</div>
+                                <div>sda          <span class="text-stone-500"># 디스크</span></div>
+                                <div>nvidia0      <span class="text-stone-500"># GPU 0번</span></div>
+                                <div>nvidia1      <span class="text-stone-500"># GPU 1번</span></div>
+                                <div>infiniband/</div>
+                                <div>  umad0     <span class="text-stone-500"># CX7 Port 0</span></div>
+                                <div>  umad1     <span class="text-stone-500"># CX7 Port 1</span></div>
                             </div>
-                            <p class="text-sm text-green-700 dark:text-green-400">
-                                OS가 모든 장치에 <strong>직접 접근</strong> 가능
-                            </p>
                         </div>
-                        
-                        <!-- VM -->
-                        <div class="bg-amber-50 dark:bg-amber-900/20 rounded-xl p-4 border border-amber-200 dark:border-amber-700">
-                            <h4 class="font-semibold text-amber-800 dark:text-amber-300 mb-3 flex items-center gap-2">
-                                <span>☁️</span> VM (GPU Passthrough)
-                            </h4>
-                            <div class="bg-white dark:bg-stone-800 rounded-lg p-4 mb-3">
-                                <div class="text-xs space-y-2">
-                                    <!-- Host Layer -->
-                                    <div class="border-b border-dashed border-stone-300 dark:border-stone-600 pb-2">
-                                        <div class="text-stone-500 dark:text-stone-400 mb-1">Host</div>
-                                        <div class="flex items-center justify-center gap-2 flex-wrap">
-                                            <div class="bg-blue-500 text-white px-2 py-1 rounded font-semibold">CPU</div>
-                                            <div class="text-stone-400">→</div>
-                                            <div class="bg-purple-500 text-white px-2 py-1 rounded font-semibold">CX7</div>
-                                            <div class="text-stone-400">→</div>
-                                            <div class="bg-orange-500 text-white px-2 py-1 rounded font-semibold">NVSwitch</div>
-                                        </div>
-                                    </div>
-                                    <!-- Guest Layer -->
-                                    <div class="pt-1">
-                                        <div class="text-stone-500 dark:text-stone-400 mb-1">Guest</div>
-                                        <div class="flex items-center justify-center gap-2">
-                                            <div class="bg-green-500 text-white px-2 py-1 rounded font-semibold">GPU only</div>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="bg-stone-50 dark:bg-stone-900 rounded-xl p-4">
+                            <h4 class="font-semibold mb-3">프로그램의 장치 사용</h4>
+                            <div class="bg-stone-800 rounded-lg p-4 font-mono text-sm text-blue-400 overflow-x-auto">
+                                <div class="text-stone-500">// FM이 NVSwitch 제어하는 방식</div>
+                                <div>fd = open("/dev/infiniband/umad0");</div>
+                                <div>write(fd, command);  <span class="text-stone-500">// 명령 전송</span></div>
+                                <div>read(fd, response);  <span class="text-stone-500">// 응답 수신</span></div>
                             </div>
-                            <p class="text-sm text-amber-700 dark:text-amber-400">
-                                Guest는 <strong>GPU만</strong> 볼 수 있음
-                            </p>
                         </div>
                     </div>
 
-                    <!-- Why CX7 Bridge cannot be passed -->
-                    <div class="bg-stone-50 dark:bg-stone-900 rounded-xl p-4 border border-stone-200 dark:border-stone-700">
-                        <h4 class="font-semibold mb-3 flex items-center gap-2">
-                            <span class="text-purple-500">🌉</span> CX7 Bridge가 Passthrough 불가능한 이유
-                        </h4>
-                        <p class="text-sm text-stone-600 dark:text-stone-300 mb-3">
-                            CX7 Bridge는 PCIe 장치이지만, NVSwitch 제어를 위해 
-                            <code class="bg-stone-200 dark:bg-stone-700 px-1 rounded">/dev/infiniband/umadX</code> 
-                            디바이스를 사용합니다. 이 디바이스는 <strong>InfiniBand MAD (Management Datagram)</strong> 프로토콜로 
-                            NVSwitch와 통신하는데, VM에 Passthrough하면 Host의 Fabric Manager가 NVSwitch를 제어할 수 없게 됩니다.
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 border border-amber-200 dark:border-amber-700">
+                        <p class="text-sm text-amber-800 dark:text-amber-300">
+                            <strong>💡 핵심:</strong> 장치 파일이 어디에 있느냐가 프로그램 실행 위치를 결정합니다.
+                            <code class="bg-amber-200 dark:bg-amber-800 px-1 rounded">/dev/infiniband/umad0</code>가 
+                            Host에 있으면 Host에서 FM 실행, VM에 있으면 VM에서 FM 실행 가능.
                         </p>
-                        <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-3 border border-red-200 dark:border-red-700">
-                            <p class="text-xs text-red-800 dark:text-red-300">
-                                <strong>⚠️ 핵심:</strong> NVSwitch 제어는 <strong>반드시 Host에서</strong> 이루어져야 합니다.
-                                CX7 Bridge를 Guest에 넘기면 Host FM이 NVSwitch를 관리할 수 없습니다.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: PCI & IOMMU -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">2️⃣ PCI Passthrough와 IOMMU</h2>
+            
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="p-6">
+                    <!-- PCI Passthrough -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">PCI Passthrough란?</h3>
+                        <p class="text-stone-700 dark:text-stone-300 mb-4">
+                            Host의 <strong>물리적 PCI 장치를 VM에 직접 할당</strong>하는 기술입니다.
+                            VM은 해당 장치를 물리 장치처럼 독점적으로 사용할 수 있습니다.
+                        </p>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 border border-red-200 dark:border-red-700">
+                                <h4 class="font-semibold text-red-800 dark:text-red-300 mb-2">Passthrough 전</h4>
+                                <div class="text-sm text-red-700 dark:text-red-400">
+                                    <div>Host: GPU 소유 ✅</div>
+                                    <div>VM: GPU 접근 불가 ❌</div>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
+                                <h4 class="font-semibold text-green-800 dark:text-green-300 mb-2">Passthrough 후</h4>
+                                <div class="text-sm text-green-700 dark:text-green-400">
+                                    <div>Host: GPU 접근 불가 ❌</div>
+                                    <div>VM: GPU 소유 ✅</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- IOMMU -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">IOMMU (Input/Output Memory Management Unit)</h3>
+                        <p class="text-stone-700 dark:text-stone-300 mb-4">
+                            장치가 <strong>허가된 메모리 영역만 접근</strong>하도록 보호하는 하드웨어입니다.
+                            VM 간 메모리 격리를 보장합니다.
+                        </p>
+                        
+                        <div class="bg-stone-50 dark:bg-stone-900 rounded-xl p-4">
+                            <div class="flex items-center justify-center">
+                                <div class="text-center">
+                                    <div class="bg-stone-200 dark:bg-stone-700 rounded-lg p-3 mb-2 font-mono text-sm">
+                                        Host Memory
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 mb-4">
+                                        <div class="bg-blue-200 dark:bg-blue-800 rounded p-2 text-xs">VM1 영역</div>
+                                        <div class="bg-green-200 dark:bg-green-800 rounded p-2 text-xs">VM2 영역</div>
+                                        <div class="bg-purple-200 dark:bg-purple-800 rounded p-2 text-xs">Host 영역</div>
+                                    </div>
+                                    <div class="text-xs text-stone-500 dark:text-stone-400 mb-2">↑ IOMMU 보호 ↑</div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-blue-500 text-white rounded p-2 text-xs">GPU 1 (VM1 전용)</div>
+                                        <div class="bg-green-500 text-white rounded p-2 text-xs">GPU 2 (VM2 전용)</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-center text-stone-500 dark:text-stone-400 mt-3">
+                                IOMMU가 보장: GPU 1은 VM1 영역만, GPU 2는 VM2 영역만 접근 가능
                             </p>
+                        </div>
+                    </div>
+
+                    <!-- IOMMU Group -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-3">IOMMU 그룹</h3>
+                        <p class="text-stone-700 dark:text-stone-300 mb-4">
+                            <strong>함께 격리되는 장치들의 묶음</strong>입니다. 
+                            같은 그룹의 장치들은 함께 Passthrough하거나 전부 Host에 남겨야 합니다.
+                        </p>
+                        
+                        <div class="bg-stone-800 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                            <div class="text-stone-500"># IOMMU 그룹 확인</div>
+                            <div>IOMMU Group 13:</div>
+                            <div class="pl-4">├── 05:00.0 CX7 LPF</div>
+                            <div class="pl-4">├── 05:00.1 CX7 FC PF</div>
+                            <div class="pl-4">├── 05:00.2 CX7 LPF</div>
+                            <div class="pl-4">└── 05:00.3 CX7 FC PF</div>
+                            <div class="mt-2 text-stone-500"># → 이 4개는 함께 움직여야 할 수 있음</div>
+                        </div>
+                    </div>
+
+                    <!-- VFIO -->
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3">VFIO (Virtual Function I/O)</h3>
+                        <p class="text-stone-700 dark:text-stone-300 mb-4">
+                            Linux에서 장치를 VM에 안전하게 넘기는 <strong>Passthrough 프레임워크</strong>입니다.
+                        </p>
+                        
+                        <div class="bg-stone-800 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto">
+                            <div class="text-stone-500"># 장치를 vfio-pci 드라이버에 바인딩</div>
+                            <div>echo "0000:1b:00.0" > /sys/bus/pci/devices/0000:1b:00.0/driver/unbind</div>
+                            <div>echo "vfio-pci" > /sys/bus/pci/devices/0000:1b:00.0/driver_override</div>
+                            <div>echo "0000:1b:00.0" > /sys/bus/pci/drivers/vfio-pci/bind</div>
+                            <div class="mt-2 text-stone-500"># 이제 이 장치는 VM에 넘길 준비 완료</div>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Host vs Guest Responsibilities -->
+        <!-- Section 3: B200 Devices -->
         <section class="mb-12">
-            <h2 class="text-2xl font-bold mb-6">📋 Host vs Guest 역할 분담</h2>
+            <h2 class="text-2xl font-bold mb-6">3️⃣ B200 장치별 Passthrough 가능 여부</h2>
             
             <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
                 <div class="p-6">
-                    <!-- Diagram -->
-                    <div class="bg-stone-50 dark:bg-stone-900 rounded-xl p-6 mb-6">
-                        <svg viewBox="0 0 600 300" class="w-full h-auto" style="max-height: 280px;">
-                            <!-- Host Area -->
-                            <rect x="20" y="20" width="560" height="120" rx="12" fill="none" stroke="#3b82f6" stroke-width="2" stroke-dasharray="6,3"/>
-                            <text x="40" y="45" class="fill-blue-600 dark:fill-blue-400 font-bold" style="font-size:14px">Host (물리 서버)</text>
-                            
-                            <!-- Host Components -->
-                            <rect x="40" y="60" width="100" height="60" rx="8" fill="#7c3aed"/>
-                            <text x="90" y="85" text-anchor="middle" fill="white" style="font-size:11px">Fabric Manager</text>
-                            <text x="90" y="100" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">NVSwitch 관리</text>
-                            
-                            <rect x="160" y="60" width="80" height="60" rx="8" fill="#7c3aed"/>
-                            <text x="200" y="85" text-anchor="middle" fill="white" style="font-size:11px">libibumad</text>
-                            <text x="200" y="100" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">IB MAD</text>
-                            
-                            <rect x="260" y="60" width="80" height="60" rx="8" fill="#7c3aed"/>
-                            <text x="300" y="85" text-anchor="middle" fill="white" style="font-size:11px">CX7 Bridge</text>
-                            <text x="300" y="100" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">/dev/infiniband/*</text>
-                            
-                            <rect x="360" y="60" width="80" height="60" rx="8" fill="#ea580c"/>
-                            <text x="400" y="85" text-anchor="middle" fill="white" style="font-size:11px">NVSwitch</text>
-                            <text x="400" y="100" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">GPU 라우팅</text>
-                            
-                            <rect x="460" y="60" width="100" height="60" rx="8" fill="#64748b"/>
-                            <text x="510" y="85" text-anchor="middle" fill="white" style="font-size:11px">vfio-pci</text>
-                            <text x="510" y="100" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">GPU 점유</text>
-                            
-                            <!-- Arrows between host components -->
-                            <path d="M140 90 L155 90" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
-                            <path d="M240 90 L255 90" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
-                            <path d="M340 90 L355 90" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
-                            
-                            <!-- Guest Area -->
-                            <rect x="20" y="160" width="560" height="120" rx="12" fill="none" stroke="#22c55e" stroke-width="2" stroke-dasharray="6,3"/>
-                            <text x="40" y="185" class="fill-green-600 dark:fill-green-400 font-bold" style="font-size:14px">Guest (VM)</text>
-                            
-                            <!-- Guest Components -->
-                            <rect x="40" y="200" width="120" height="60" rx="8" fill="#059669"/>
-                            <text x="100" y="225" text-anchor="middle" fill="white" style="font-size:11px">nvidia-driver</text>
-                            <text x="100" y="240" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">GPU 제어</text>
-                            
-                            <rect x="180" y="200" width="100" height="60" rx="8" fill="#059669"/>
-                            <text x="230" y="225" text-anchor="middle" fill="white" style="font-size:11px">GPU</text>
-                            <text x="230" y="240" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">Passthrough</text>
-                            
-                            <rect x="300" y="200" width="100" height="60" rx="8" fill="#9333ea"/>
-                            <text x="350" y="225" text-anchor="middle" fill="white" style="font-size:11px">vLLM</text>
-                            <text x="350" y="240" text-anchor="middle" fill="white" opacity="0.8" style="font-size:9px">Application</text>
-                            
-                            <!-- Passthrough Arrow -->
-                            <path d="M510 125 L510 145 L230 145 L230 195" stroke="#10b981" stroke-width="3" fill="none" marker-end="url(#arrow-green)"/>
-                            <text x="370" y="155" fill="#10b981" style="font-size:10px">GPU Passthrough</text>
-                            
-                            <!-- NVLink connection -->
-                            <path d="M400 125 L400 145 L180 145 L180 165 L180 195" stroke="#3b82f6" stroke-width="2" stroke-dasharray="4,2" fill="none"/>
-                            <text x="280" y="175" fill="#3b82f6" style="font-size:9px">NVLink (물리적)</text>
-                            
-                            <!-- Arrow markers -->
-                            <defs>
-                                <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-                                    <path d="M0,0 L0,6 L9,3 z" fill="#94a3b8"/>
-                                </marker>
-                                <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
-                                    <path d="M0,0 L0,6 L9,3 z" fill="#10b981"/>
-                                </marker>
-                            </defs>
-                        </svg>
+                    <p class="text-stone-700 dark:text-stone-300 mb-6">
+                        <strong>핵심 원칙:</strong> <code class="bg-stone-200 dark:bg-stone-700 px-1 rounded">lspci</code>에 보이는 PCIe 장치만 Passthrough 가능합니다.
+                    </p>
+
+                    <!-- lspci output -->
+                    <div class="bg-stone-800 rounded-lg p-4 font-mono text-sm text-green-400 overflow-x-auto mb-6">
+                        <div class="text-stone-500"># B200 HGX에서 lspci 출력</div>
+                        <div>$ lspci | grep -iE 'nvidia|mellanox'</div>
+                        <div class="mt-2 text-blue-400">05:00.0 Infiniband: Mellanox MT2910 [ConnectX-7]  <span class="text-stone-500"># CX7 LPF</span></div>
+                        <div class="text-blue-400">05:00.1 Infiniband: Mellanox MT2910 [ConnectX-7]  <span class="text-stone-500"># CX7 FC PF</span></div>
+                        <div class="text-blue-400">05:00.2 Infiniband: Mellanox MT2910 [ConnectX-7]  <span class="text-stone-500"># CX7 LPF</span></div>
+                        <div class="text-blue-400">05:00.3 Infiniband: Mellanox MT2910 [ConnectX-7]  <span class="text-stone-500"># CX7 FC PF</span></div>
+                        <div class="mt-1 text-green-400">1b:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 0</span></div>
+                        <div class="text-green-400">43:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 1</span></div>
+                        <div class="text-green-400">52:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 2</span></div>
+                        <div class="text-green-400">61:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 3</span></div>
+                        <div class="text-green-400">9d:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 4</span></div>
+                        <div class="text-green-400">c3:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 5</span></div>
+                        <div class="text-green-400">d1:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 6</span></div>
+                        <div class="text-green-400">df:00.0 3D controller: NVIDIA Corporation [B200]  <span class="text-stone-500"># GPU 7</span></div>
+                        <div class="mt-2 text-red-400 text-stone-500"># NVSwitch는 lspci에 안 보임!</div>
                     </div>
 
-                    <!-- Responsibility Table -->
+                    <!-- Device Table -->
+                    <div class="overflow-x-auto mb-6">
+                        <table class="w-full text-sm border border-stone-200 dark:border-stone-700 rounded-xl overflow-hidden">
+                            <thead class="bg-stone-100 dark:bg-stone-800">
+                                <tr>
+                                    <th class="px-4 py-3 text-left font-semibold">장치</th>
+                                    <th class="px-4 py-3 text-center font-semibold">PCIe</th>
+                                    <th class="px-4 py-3 text-center font-semibold">Passthrough</th>
+                                    <th class="px-4 py-3 text-left font-semibold">용도</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
+                                <tr class="bg-green-50/50 dark:bg-green-900/10">
+                                    <td class="px-4 py-3 font-medium">GPU 8개</td>
+                                    <td class="px-4 py-3 text-center text-green-600">✅ 보임</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-bold">✅ 가능</td>
+                                    <td class="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">CUDA 연산, ML 추론/학습</td>
+                                </tr>
+                                <tr class="bg-blue-50/50 dark:bg-blue-900/10">
+                                    <td class="px-4 py-3 font-medium">CX7 LPF (.0, .2)</td>
+                                    <td class="px-4 py-3 text-center text-green-600">✅ 보임</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-bold">✅ 가능</td>
+                                    <td class="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">FM/NVLSM이 NVSwitch 제어에 사용</td>
+                                </tr>
+                                <tr class="bg-blue-50/50 dark:bg-blue-900/10">
+                                    <td class="px-4 py-3 font-medium">CX7 FC PF (.1, .3)</td>
+                                    <td class="px-4 py-3 text-center text-green-600">✅ 보임</td>
+                                    <td class="px-4 py-3 text-center text-green-600 font-bold">✅ 가능</td>
+                                    <td class="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">NVSwitch 리셋, 링크 관리</td>
+                                </tr>
+                                <tr class="bg-red-50/50 dark:bg-red-900/10">
+                                    <td class="px-4 py-3 font-medium">NVSwitch 2개</td>
+                                    <td class="px-4 py-3 text-center text-red-600">❌ 안 보임</td>
+                                    <td class="px-4 py-3 text-center text-red-600 font-bold">❌ 불가</td>
+                                    <td class="px-4 py-3 text-sm text-stone-600 dark:text-stone-400">CX7 Bridge 뒤에 있음</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- CX7 Structure -->
+                    <div class="bg-purple-50 dark:bg-purple-900/20 rounded-xl p-5 border border-purple-200 dark:border-purple-700">
+                        <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">CX7 Bridge 구조 (B200 핵심)</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-purple-700 dark:text-purple-400 mb-3">
+                                    B200에서 NVSwitch는 <strong>PCIe에 직접 연결되지 않고</strong> CX7 Bridge 뒤에 있습니다.
+                                    NVSwitch를 제어하려면 CX7 Bridge를 통해야 합니다.
+                                </p>
+                                <div class="text-sm">
+                                    <div class="mb-2"><strong>LPF (Limited PF)</strong> - .0, .2</div>
+                                    <ul class="text-xs text-purple-600 dark:text-purple-400 ml-4 space-y-1">
+                                        <li>• FM/NVLSM이 사용</li>
+                                        <li>• NVSwitch 설정, 라우팅</li>
+                                        <li>• <code>/dev/infiniband/umadX</code> 생성</li>
+                                    </ul>
+                                    <div class="mt-3 mb-2"><strong>FC PF (Full Capabilities)</strong> - .1, .3</div>
+                                    <ul class="text-xs text-purple-600 dark:text-purple-400 ml-4 space-y-1">
+                                        <li>• 관리/리셋 기능</li>
+                                        <li>• 링크 enable/disable</li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="bg-white dark:bg-stone-800 rounded-lg p-4">
+                                <div class="font-mono text-xs">
+                                    <div class="text-stone-500 mb-2">B200 HGX 보드</div>
+                                    <div class="border-l-2 border-stone-300 dark:border-stone-600 pl-3 space-y-1">
+                                        <div class="text-green-600">├── GPU 0-7 (PCIe) ✅</div>
+                                        <div class="text-blue-600">├── CX7 Bridge (PCIe) ✅</div>
+                                        <div class="text-blue-400 pl-4">├── .0 LPF → FM용</div>
+                                        <div class="text-blue-400 pl-4">├── .1 FC PF</div>
+                                        <div class="text-blue-400 pl-4">├── .2 LPF → FM용</div>
+                                        <div class="text-blue-400 pl-4">└── .3 FC PF</div>
+                                        <div class="text-red-600">└── NVSwitch (CX7 뒤) ❌</div>
+                                        <div class="text-red-400 pl-4">├── NVSwitch 0</div>
+                                        <div class="text-red-400 pl-4">└── NVSwitch 1</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 4: Two Models -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">4️⃣ 두 가지 가상화 모델</h2>
+            
+            <div class="grid md:grid-cols-2 gap-6 mb-6">
+                <!-- Model A -->
+                <div class="bg-white dark:bg-stone-800 rounded-2xl border-2 border-teal-200 dark:border-teal-700 overflow-hidden">
+                    <div class="bg-teal-100 dark:bg-teal-900/30 px-6 py-4 border-b border-teal-200 dark:border-teal-700">
+                        <h3 class="text-lg font-bold text-teal-800 dark:text-teal-300">Model A: Host FM</h3>
+                        <p class="text-sm text-teal-600 dark:text-teal-400">Host가 FM 실행, VM은 GPU만</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4 mb-4 font-mono text-xs">
+                            <div class="text-teal-600 dark:text-teal-400 mb-2">┌─ Host ─────────────────┐</div>
+                            <div class="text-teal-600 dark:text-teal-400">│ • FM + NVLSM 실행      │</div>
+                            <div class="text-teal-600 dark:text-teal-400">│ • CX7 Bridge 소유      │</div>
+                            <div class="text-teal-600 dark:text-teal-400">│ • /dev/infiniband/umadX│</div>
+                            <div class="text-teal-600 dark:text-teal-400 mb-2">└────────────────────────┘</div>
+                            <div class="text-green-600 dark:text-green-400">┌─ VM ──────────────────┐</div>
+                            <div class="text-green-600 dark:text-green-400">│ • GPU 8개 (Passthrough)│</div>
+                            <div class="text-green-600 dark:text-green-400">│ • nvidia-driver only  │</div>
+                            <div class="text-green-600 dark:text-green-400">│ • FM 없음/실행 불가   │</div>
+                            <div class="text-green-600 dark:text-green-400">└───────────────────────┘</div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span>설정 간단</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span>단일 VM에 8GPU 전체 할당</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-amber-500">△</span>
+                                <span>GPU 파티셔닝 시 NVLink 대역폭 감소</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Model B -->
+                <div class="bg-white dark:bg-stone-800 rounded-2xl border-2 border-purple-200 dark:border-purple-700 overflow-hidden">
+                    <div class="bg-purple-100 dark:bg-purple-900/30 px-6 py-4 border-b border-purple-200 dark:border-purple-700">
+                        <h3 class="text-lg font-bold text-purple-800 dark:text-purple-300">Model B: Service VM</h3>
+                        <p class="text-sm text-purple-600 dark:text-purple-400">Service VM이 FM 실행, CX7 Passthrough</p>
+                    </div>
+                    <div class="p-6">
+                        <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4 mb-4 font-mono text-xs">
+                            <div class="text-stone-500 mb-2">┌─ Host (Hypervisor만) ──┐</div>
+                            <div class="text-stone-500">│ • FM 없음              │</div>
+                            <div class="text-stone-500 mb-2">└────────────────────────┘</div>
+                            <div class="text-purple-600 dark:text-purple-400">┌─ Service VM ──────────┐</div>
+                            <div class="text-purple-600 dark:text-purple-400">│ • CX7 LPF (Passthrough)│</div>
+                            <div class="text-purple-600 dark:text-purple-400">│ • FM + NVLSM 실행     │</div>
+                            <div class="text-purple-600 dark:text-purple-400 mb-2">└───────────────────────┘</div>
+                            <div class="text-green-600 dark:text-green-400">┌─ Tenant VM ───────────┐</div>
+                            <div class="text-green-600 dark:text-green-400">│ • GPU N개 (Passthrough)│</div>
+                            <div class="text-green-600 dark:text-green-400">│ • nvidia-driver only  │</div>
+                            <div class="text-green-600 dark:text-green-400">└───────────────────────┘</div>
+                        </div>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span>1/2/4/8 GPU 파티셔닝 가능</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-green-500">✓</span>
+                                <span>모든 구성에서 전체 NVLink 대역폭</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-amber-500">△</span>
+                                <span>설정 복잡, Service VM 항상 실행 필요</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="p-6">
+                    <h3 class="text-lg font-semibold mb-4">모델 비교</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm border border-stone-200 dark:border-stone-700 rounded-xl overflow-hidden">
                             <thead class="bg-stone-100 dark:bg-stone-800">
                                 <tr>
-                                    <th class="px-4 py-3 text-left font-semibold">컴포넌트</th>
-                                    <th class="px-4 py-3 text-center font-semibold">Host</th>
-                                    <th class="px-4 py-3 text-center font-semibold">Guest</th>
-                                    <th class="px-4 py-3 text-left font-semibold">이유</th>
+                                    <th class="px-4 py-3 text-left font-semibold">항목</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-teal-600 dark:text-teal-400">Model A (Host FM)</th>
+                                    <th class="px-4 py-3 text-center font-semibold text-purple-600 dark:text-purple-400">Model B (Service VM)</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-stone-200 dark:divide-stone-700">
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">nvidia-driver</td>
-                                    <td class="px-4 py-3 text-center text-amber-600 dark:text-amber-400">△</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">Host: FM 의존성으로 설치되나 GPU 못 잡음 (vfio-pci)</td>
+                                    <td class="px-4 py-3 font-medium">FM 실행 위치</td>
+                                    <td class="px-4 py-3 text-center">Host OS</td>
+                                    <td class="px-4 py-3 text-center">Service VM</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">nvidia-fabricmanager</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-center text-red-600">❌</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">NVSwitch 제어는 Host에서만 가능</td>
+                                    <td class="px-4 py-3 font-medium">CX7 Bridge 위치</td>
+                                    <td class="px-4 py-3 text-center">Host</td>
+                                    <td class="px-4 py-3 text-center">Service VM (Passthrough)</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">libibumad</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-center text-red-600">❌</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">CX7 Bridge 통신용 (Guest에 없음)</td>
+                                    <td class="px-4 py-3 font-medium">VM이 받는 것</td>
+                                    <td class="px-4 py-3 text-center">GPU만</td>
+                                    <td class="px-4 py-3 text-center">GPU만 (Tenant VM)</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">nvlink5 (B200)</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-center text-red-600">❌</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">NVLink Subnet Manager (Host에서 관리)</td>
+                                    <td class="px-4 py-3 font-medium">GPU 파티셔닝</td>
+                                    <td class="px-4 py-3 text-center">제한적 (NVLink 대역폭 감소)</td>
+                                    <td class="px-4 py-3 text-center">유연함 (전체 대역폭 유지)</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">vfio-pci 설정</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-center text-stone-400">-</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">GPU를 VM에 넘기기 위해 필요</td>
+                                    <td class="px-4 py-3 font-medium">설정 복잡도</td>
+                                    <td class="px-4 py-3 text-center text-green-600">낮음</td>
+                                    <td class="px-4 py-3 text-center text-amber-600">높음</td>
                                 </tr>
                                 <tr>
-                                    <td class="px-4 py-3 font-medium">nokaslr 커널 파라미터</td>
-                                    <td class="px-4 py-3 text-center text-stone-400">-</td>
-                                    <td class="px-4 py-3 text-center text-green-600">✅</td>
-                                    <td class="px-4 py-3 text-xs text-stone-600 dark:text-stone-400">B200 CUDA HMM 이슈 해결</td>
+                                    <td class="px-4 py-3 font-medium">추천 상황</td>
+                                    <td class="px-4 py-3 text-center text-xs">단일 VM에 8GPU 전체</td>
+                                    <td class="px-4 py-3 text-center text-xs">멀티테넌트, GPU 나눠쓰기</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -314,167 +474,236 @@
             </div>
         </section>
 
-        <!-- Why FM doesn't work in Guest -->
+        <!-- Section 5: Model A Setup -->
         <section class="mb-12">
-            <h2 class="text-2xl font-bold mb-6">❌ Guest에서 Fabric Manager가 안 되는 이유</h2>
+            <h2 class="text-2xl font-bold mb-6">5️⃣ Model A 설정 (Host FM)</h2>
             
-            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
-                <div class="bg-red-100 dark:bg-red-900/30 px-6 py-4 border-b border-red-200 dark:border-red-700">
-                    <h3 class="text-lg font-bold text-red-800 dark:text-red-300">
-                        FM은 /dev/infiniband/umadX 가 필요합니다
-                    </h3>
-                </div>
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-teal-200 dark:border-teal-700 overflow-hidden">
                 <div class="p-6">
-                    <p class="text-stone-700 dark:text-stone-300 mb-4">
-                        Fabric Manager는 CX7 Bridge를 통해 NVSwitch와 통신합니다.
-                        이때 <code class="bg-stone-100 dark:bg-stone-700 px-1.5 py-0.5 rounded">/dev/infiniband/umadX</code> 디바이스가 필요한데,
-                        이 디바이스는 VM에 Passthrough할 수 없습니다.
-                    </p>
-                    
-                    <!-- Error Example -->
-                    <div class="bg-stone-900 rounded-xl p-4 mb-4 overflow-x-auto">
-                        <div class="text-xs text-stone-400 mb-2"># Guest에서 FM 시작 시도</div>
-                        <div class="font-mono text-sm text-green-400 mb-3">$ sudo systemctl start nvidia-fabricmanager</div>
-                        <div class="text-xs text-stone-400 mb-2"># journalctl -u nvidia-fabricmanager 에러 로그</div>
-                        <div class="font-mono text-sm text-red-400 space-y-1">
-                            <div>Failed to open InfiniBand device</div>
-                            <div>request to query NVSwitch device information failed</div>
-                            <div>NV_WARN_NOTHING_TO_DO</div>
-                        </div>
-                    </div>
-                    
-                    <!-- Why -->
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
-                            <h4 class="font-semibold text-stone-700 dark:text-stone-300 mb-2">Host에서 확인</h4>
-                            <div class="bg-stone-800 rounded p-3 font-mono text-xs text-green-400">
-                                <div>$ ls /dev/infiniband/</div>
-                                <div class="text-stone-300">issm0 issm1 umad0 umad1 ...</div>
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <!-- Host Setup -->
+                        <div>
+                            <h4 class="font-semibold text-teal-800 dark:text-teal-300 mb-3 flex items-center gap-2">
+                                <span>🖥️</span> Host 설정
+                            </h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># 1. 패키지 설치</div>
+                                <div>sudo ./nvidia-rpmtools install 9 \</div>
+                                <div class="pl-4">nvidia-driver-590-open \</div>
+                                <div class="pl-4">nvidia-fabricmanager-590 \</div>
+                                <div class="pl-4">libibumad infiniband-diags \</div>
+                                <div class="pl-4">nvlink5-590</div>
+                                <div class="mt-3 text-stone-500"># 2. FM 시작</div>
+                                <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+                                <div class="mt-3 text-stone-500"># 3. GPU를 vfio-pci에 바인딩</div>
+                                <div class="text-stone-500"># (vfio-pci 설정 후 VM에 할당)</div>
                             </div>
                         </div>
-                        <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
-                            <h4 class="font-semibold text-stone-700 dark:text-stone-300 mb-2">Guest에서 확인</h4>
-                            <div class="bg-stone-800 rounded p-3 font-mono text-xs text-red-400">
-                                <div>$ ls /dev/infiniband/</div>
-                                <div class="text-stone-500">ls: cannot access '/dev/infiniband/': No such file or directory</div>
+                        
+                        <!-- Guest Setup -->
+                        <div>
+                            <h4 class="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
+                                <span>☁️</span> VM (Guest) 설정
+                            </h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># 1. 드라이버만 설치 (FM 불필요)</div>
+                                <div>sudo ./nvidia-rpmtools install 9 \</div>
+                                <div class="pl-4">nvidia-driver-590-open</div>
+                                <div class="mt-3 text-stone-500"># 2. B200 CUDA HMM 이슈 해결</div>
+                                <div class="text-stone-500"># /etc/default/grub:</div>
+                                <div class="text-amber-400">GRUB_CMDLINE_LINUX_DEFAULT="nokaslr"</div>
+                                <div class="mt-3 text-stone-500"># 3. GRUB 업데이트 및 재부팅</div>
+                                <div>sudo grub2-mkconfig -o /boot/grub2/grub.cfg</div>
+                                <div>sudo reboot</div>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-700">
+
+                    <!-- Verification -->
+                    <div class="mt-6 pt-6 border-t border-stone-200 dark:border-stone-700">
+                        <h4 class="font-semibold mb-3">확인 방법</h4>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
+                                <div class="text-sm font-medium mb-2">Host에서 확인</div>
+                                <div class="bg-stone-800 rounded p-3 font-mono text-xs text-green-400">
+                                    <div>$ systemctl status nvidia-fabricmanager</div>
+                                    <div class="text-stone-400">● active (running)</div>
+                                    <div class="mt-2">$ ls /dev/infiniband/</div>
+                                    <div class="text-stone-400">umad0 umad1 issm0 issm1</div>
+                                </div>
+                            </div>
+                            <div class="bg-stone-50 dark:bg-stone-900 rounded-lg p-4">
+                                <div class="text-sm font-medium mb-2">VM에서 확인</div>
+                                <div class="bg-stone-800 rounded p-3 font-mono text-xs text-green-400">
+                                    <div>$ nvidia-smi</div>
+                                    <div class="text-stone-400"># 8개 GPU 보임</div>
+                                    <div class="mt-2">$ nvidia-smi topo -m</div>
+                                    <div class="text-stone-400"># NVLink 연결 보임</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 6: Model B Setup -->
+        <section class="mb-12">
+            <h2 class="text-2xl font-bold mb-6">6️⃣ Model B 설정 (Service VM)</h2>
+            
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-purple-200 dark:border-purple-700 overflow-hidden">
+                <div class="p-6">
+                    <div class="bg-amber-50 dark:bg-amber-900/20 rounded-lg p-4 mb-6 border border-amber-200 dark:border-amber-700">
                         <p class="text-sm text-amber-800 dark:text-amber-300">
-                            <strong>💡 결론:</strong> Guest에는 FM을 설치하지 마세요. 
-                            Host의 FM이 NVSwitch를 관리하고, Guest는 GPU만 사용합니다.
+                            <strong>⚠️ 주의:</strong> Model B는 CX7를 Service VM에 Passthrough합니다.
+                            이 경우 Host에서는 FM을 실행할 수 없습니다. Service VM이 항상 실행 중이어야 합니다.
                         </p>
                     </div>
+
+                    <div class="space-y-6">
+                        <!-- Step 1 -->
+                        <div>
+                            <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">Step 1: CX7 LPF를 vfio-pci에 바인딩</h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># Host에서 실행</div>
+                                <div class="text-stone-500"># CX7 LPF (.0, .2)를 vfio-pci로 바인딩</div>
+                                <div class="mt-2">echo "0000:05:00.0" > /sys/bus/pci/devices/0000:05:00.0/driver/unbind</div>
+                                <div>echo "0000:05:00.2" > /sys/bus/pci/devices/0000:05:00.2/driver/unbind</div>
+                                <div class="mt-2">echo "vfio-pci" > /sys/bus/pci/devices/0000:05:00.0/driver_override</div>
+                                <div>echo "vfio-pci" > /sys/bus/pci/devices/0000:05:00.2/driver_override</div>
+                                <div class="mt-2">echo "0000:05:00.0" > /sys/bus/pci/drivers/vfio-pci/bind</div>
+                                <div>echo "0000:05:00.2" > /sys/bus/pci/drivers/vfio-pci/bind</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div>
+                            <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">Step 2: Service VM에 CX7 Passthrough</h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-blue-400 overflow-x-auto">
+                                <div class="text-stone-500">&lt;!-- libvirt XML --&gt;</div>
+                                <div>&lt;hostdev mode='subsystem' type='pci' managed='yes'&gt;</div>
+                                <div class="pl-4">&lt;source&gt;</div>
+                                <div class="pl-8">&lt;address domain='0x0000' bus='0x05' slot='0x00' function='0x0'/&gt;</div>
+                                <div class="pl-4">&lt;/source&gt;</div>
+                                <div>&lt;/hostdev&gt;</div>
+                                <div>&lt;hostdev mode='subsystem' type='pci' managed='yes'&gt;</div>
+                                <div class="pl-4">&lt;source&gt;</div>
+                                <div class="pl-8">&lt;address domain='0x0000' bus='0x05' slot='0x00' function='0x2'/&gt;</div>
+                                <div class="pl-4">&lt;/source&gt;</div>
+                                <div>&lt;/hostdev&gt;</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div>
+                            <h4 class="font-semibold text-purple-800 dark:text-purple-300 mb-3">Step 3: Service VM 내부 설정</h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># Service VM 내부에서 실행</div>
+                                <div class="mt-2 text-stone-500"># 1. 필수 패키지 설치</div>
+                                <div>sudo dnf install -y libibumad infiniband-diags</div>
+                                <div class="mt-2 text-stone-500"># 2. NVIDIA 패키지 설치</div>
+                                <div>sudo ./nvidia-rpmtools install 9 \</div>
+                                <div class="pl-4">nvidia-driver-590-open \</div>
+                                <div class="pl-4">nvidia-fabricmanager-590 \</div>
+                                <div class="pl-4">nvlink5-590</div>
+                                <div class="mt-2 text-stone-500"># 3. CX7 확인</div>
+                                <div>ls /dev/infiniband/</div>
+                                <div class="text-stone-400"># umad0 umad1 issm0 issm1 보여야 함</div>
+                                <div class="mt-2 text-stone-500"># 4. FM 시작</div>
+                                <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div>
+                            <h4 class="font-semibold text-green-800 dark:text-green-300 mb-3">Step 4: Tenant VM에 GPU Passthrough</h4>
+                            <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
+                                <div class="text-stone-500"># Tenant VM에는 GPU만 Passthrough</div>
+                                <div class="text-stone-500"># 드라이버만 설치, FM 불필요</div>
+                                <div class="mt-2">sudo ./nvidia-rpmtools install 9 nvidia-driver-590-open</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- Quick Install Commands -->
+        <!-- Section 7: Troubleshooting -->
         <section class="mb-12">
-            <h2 class="text-2xl font-bold mb-6">📦 설치 명령어</h2>
+            <h2 class="text-2xl font-bold mb-6">7️⃣ 문제 해결</h2>
             
-            <div class="grid md:grid-cols-2 gap-6">
-                <!-- Host -->
-                <div class="bg-blue-50 dark:bg-blue-900/20 rounded-xl p-5 border border-blue-200 dark:border-blue-700">
-                    <h4 class="font-semibold text-blue-800 dark:text-blue-300 mb-3 flex items-center gap-2">
-                        <span>🖥️</span> Host (RHEL/Rocky 9)
-                    </h4>
-                    <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
-                        <div class="text-stone-500"># 1. vfio-pci 설정 먼저 (Quick Start 참조)</div>
-                        <div class="mt-2 text-stone-500"># 2. 패키지 설치</div>
-                        <div>sudo ./nvidia-rpmtools install 9 \</div>
-                        <div class="pl-4">nvidia-driver-590-open \</div>
-                        <div class="pl-4">nvidia-fabricmanager-590 \</div>
-                        <div class="pl-4 text-amber-400">libibumad infiniband-diags \</div>
-                        <div class="pl-4 text-amber-400">nvlink5-590</div>
-                        <div class="mt-2 text-stone-500"># 3. FM 시작</div>
-                        <div>sudo systemctl enable --now nvidia-fabricmanager</div>
+            <div class="bg-white dark:bg-stone-800 rounded-2xl border border-stone-200 dark:border-stone-700 overflow-hidden">
+                <div class="p-6 space-y-6">
+                    <!-- Issue 1 -->
+                    <div class="border-l-4 border-red-500 pl-4">
+                        <h4 class="font-semibold text-red-700 dark:text-red-400 mb-2">VM에서 FM 시작 실패</h4>
+                        <div class="bg-stone-800 rounded p-3 font-mono text-xs text-red-400 mb-3">
+                            Failed to open InfiniBand device<br>
+                            request to query NVSwitch device information failed
+                        </div>
+                        <div class="text-sm text-stone-600 dark:text-stone-400">
+                            <strong>원인:</strong> CX7 Bridge가 VM에 Passthrough 안 됨<br>
+                            <strong>해결:</strong>
+                            <ul class="list-disc ml-5 mt-1">
+                                <li>Model A 사용 중이면: Host에서 FM 실행 (VM에서 FM 제거)</li>
+                                <li>Model B 사용 중이면: CX7 LPF가 VM에 Passthrough 됐는지 확인</li>
+                            </ul>
+                        </div>
                     </div>
-                </div>
-                
-                <!-- Guest -->
-                <div class="bg-green-50 dark:bg-green-900/20 rounded-xl p-5 border border-green-200 dark:border-green-700">
-                    <h4 class="font-semibold text-green-800 dark:text-green-300 mb-3 flex items-center gap-2">
-                        <span>☁️</span> Guest (RHEL/Rocky 9)
-                    </h4>
-                    <div class="bg-stone-900 rounded-lg p-4 text-xs font-mono text-green-400 overflow-x-auto">
-                        <div class="text-stone-500"># 1. 드라이버만 설치</div>
-                        <div>sudo ./nvidia-rpmtools install 9 \</div>
-                        <div class="pl-4">nvidia-driver-590-open</div>
-                        <div class="mt-2 text-stone-500"># 2. nokaslr 설정</div>
-                        <div class="text-stone-400"># /etc/default/grub:</div>
-                        <div class="text-amber-400">GRUB_CMDLINE_LINUX_DEFAULT="nokaslr"</div>
-                        <div class="mt-2 text-stone-500"># 3. GRUB 업데이트 및 재부팅</div>
-                        <div>sudo grub2-mkconfig -o /boot/grub2/grub.cfg</div>
-                        <div>sudo reboot</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="mt-4 p-4 bg-stone-50 dark:bg-stone-800 rounded-lg border border-stone-200 dark:border-stone-700">
-                <p class="text-sm text-stone-600 dark:text-stone-400">
-                    <strong>📝 참고:</strong> 위는 요약입니다. 
-                    BIOS 설정, vfio-pci 설정, libvirt XML 등 상세 내용은 
-                    <a href="https://github.com/cagojeiger/pkgman-core/blob/main/docs/install/B200-vm-install.md" 
-                       class="text-teal-600 dark:text-teal-400 hover:underline" target="_blank">
-                        상세 VM 설치 가이드 ↗
-                    </a>를 참조하세요.
-                </p>
-            </div>
-        </section>
 
-        <!-- Summary -->
-        <section class="mb-12">
-            <div class="bg-gradient-to-r from-stone-100 to-stone-50 dark:from-stone-800 dark:to-stone-900 rounded-2xl p-6 border border-stone-200 dark:border-stone-700">
-                <h2 class="text-xl font-bold mb-4">📝 요약</h2>
-                <div class="grid md:grid-cols-2 gap-6">
-                    <div>
-                        <h4 class="font-semibold text-stone-700 dark:text-stone-300 mb-2">VM이 다른 이유</h4>
-                        <ul class="space-y-1 text-sm text-stone-600 dark:text-stone-400">
-                            <li>• NVSwitch는 PCIe 장치가 아님 → Passthrough 불가</li>
-                            <li>• CX7 Bridge는 Host에서만 접근 가능</li>
-                            <li>• GPU만 PCIe라서 Passthrough 가능</li>
-                        </ul>
+                    <!-- Issue 2 -->
+                    <div class="border-l-4 border-amber-500 pl-4">
+                        <h4 class="font-semibold text-amber-700 dark:text-amber-400 mb-2">VM에서 nvidia-smi는 되지만 NVLink 안 보임</h4>
+                        <div class="text-sm text-stone-600 dark:text-stone-400">
+                            <strong>원인:</strong> FM이 어디에서도 실행되지 않음<br>
+                            <strong>해결:</strong>
+                            <ul class="list-disc ml-5 mt-1">
+                                <li>Host에서 <code class="bg-stone-200 dark:bg-stone-700 px-1 rounded">systemctl status nvidia-fabricmanager</code> 확인</li>
+                                <li>FM이 active (running)이어야 NVSwitch 패브릭이 구성됨</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="font-semibold text-stone-700 dark:text-stone-300 mb-2">역할 분담</h4>
-                        <ul class="space-y-1 text-sm text-stone-600 dark:text-stone-400">
-                            <li>• <strong>Host:</strong> FM + libibumad + nvlink5 (NVSwitch 관리)</li>
-                            <li>• <strong>Guest:</strong> nvidia-driver only (GPU 연산)</li>
-                            <li>• Guest에 FM 설치 ❌ (작동 안 함)</li>
-                        </ul>
+
+                    <!-- Issue 3 -->
+                    <div class="border-l-4 border-blue-500 pl-4">
+                        <h4 class="font-semibold text-blue-700 dark:text-blue-400 mb-2">Host에서 /dev/infiniband/ 없음</h4>
+                        <div class="text-sm text-stone-600 dark:text-stone-400">
+                            <strong>원인:</strong> OFED/MOFED 드라이버 또는 libibumad 미설치<br>
+                            <strong>해결:</strong>
+                            <div class="bg-stone-800 rounded p-2 font-mono text-xs text-green-400 mt-2">
+                                sudo dnf install -y libibumad infiniband-diags
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Related Links -->
+        <!-- References -->
         <section class="mb-8">
-            <h2 class="text-lg font-semibold mb-4">📚 관련 문서</h2>
-            <div class="grid sm:grid-cols-3 gap-3">
-                <a href="gpu-hw-architecture.html" class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 dark:hover:border-teal-500 transition-colors">
-                    <div class="text-lg mb-1">🔌</div>
-                    <div class="font-semibold text-sm">HW 아키텍처</div>
-                    <div class="text-xs text-stone-500">PCIe, NVLink, NVSwitch</div>
+            <h2 class="text-lg font-semibold mb-4">📚 참고 문서</h2>
+            <div class="flex flex-wrap gap-2">
+                <a href="https://docs.nvidia.com/datacenter/tesla/fabric-manager-user-guide/index.html" target="_blank" 
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    Fabric Manager User Guide ↗
                 </a>
-                <a href="gpu-sw-stack.html" class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 dark:hover:border-teal-500 transition-colors">
-                    <div class="text-lg mb-1">📚</div>
-                    <div class="font-semibold text-sm">SW 스택</div>
-                    <div class="text-xs text-stone-500">Driver, FM, NCCL</div>
+                <a href="https://docs.nvidia.com/vgpu/latest/grid-vgpu-user-guide/index.html" target="_blank"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    vGPU User Guide ↗
                 </a>
-                <a href="https://github.com/cagojeiger/pkgman-core/blob/main/docs/install/B200-vm-install.md" target="_blank" class="block p-4 bg-white dark:bg-stone-800 rounded-xl border border-stone-200 dark:border-stone-700 hover:border-teal-500 dark:hover:border-teal-500 transition-colors">
-                    <div class="text-lg mb-1">📋</div>
-                    <div class="font-semibold text-sm">상세 VM 가이드</div>
-                    <div class="text-xs text-stone-500">BIOS, vfio-pci, libvirt</div>
+                <a href="gpu-hw-architecture.html"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    HW 아키텍처 →
+                </a>
+                <a href="gpu-sw-stack.html"
+                   class="text-xs px-3 py-1.5 bg-stone-100 dark:bg-stone-700 rounded-full hover:bg-stone-200 dark:hover:bg-stone-600">
+                    SW 스택 →
                 </a>
             </div>
         </section>
 
     </main>
 
-    <!-- Footer -->
     <footer class="bg-stone-100 dark:bg-stone-800 border-t border-stone-200 dark:border-stone-700 px-4 sm:px-6 lg:px-8 py-6 mt-auto">
         <div class="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
             <div class="text-sm text-stone-500 dark:text-stone-400">
@@ -488,12 +717,10 @@
     </footer>
 
     <script>
-        // Scroll to top on page load
         window.onload = function() {
             window.scrollTo(0, 0);
         };
         
-        // Theme toggle
         const themeToggle = document.getElementById('theme-toggle');
         const html = document.documentElement;
         
